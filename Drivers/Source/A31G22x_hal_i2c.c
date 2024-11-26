@@ -22,6 +22,8 @@
 #include "A31G22x_hal_scu.h"
 #include "A31G22x_hal_i2c.h"
 
+#include "main_conf.h" //KMS241126_2
+
 /*******************************************************************************
 * Private Pre-processor Definition & Macro
 *******************************************************************************/
@@ -716,8 +718,10 @@ Status    HAL_I2C_MasterTransmitData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferC
 * @return       SUCCESS or ERROR
 *********************************************************************/
 Status HAL_I2C_MasterReceiveData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferCfg, I2C_TRANSFER_OPT_Type Opt) {
+#ifndef ESTEC_BOARD //KMS241126_2 : I2C read function(HAL_I2C_MasterReceiveData()) has some problem which can't not read data. so I fixed it.
     TransferCfg->tx_data = NULL;
     TransferCfg->tx_length = 0;
+#endif
     TransferCfg->tx_count = 0;
     TransferCfg->rx_count = 0;
 

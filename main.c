@@ -20,6 +20,9 @@
 #ifdef ADAU1761_ENABLE
 #include "ADAU1761.h"
 #endif
+#ifdef ADAU1452_ENABLE
+#include "ADAU1452.h"
+#endif
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -92,7 +95,16 @@ void mainloop(void)
 	/* Enable IRQ Interrupts */
 	__enable_irq();
 
-#if 0 //DDD...TES : I2C Test
+#ifdef ADAU1452_ENABLE
+	ADAU1452_Init(); //DSP Init
+#endif
+#ifdef ADAU1761_ENABLE
+	ADAU1761_Init(); //Audio Codec Init
+#endif
+
+
+#if 0//def I2C_0_TEST //DDD...TES : I2C Test
+
 	uData[0] = 0x12;
 	I2C0_Interrupt_Write_Data_8bit_SubAdd(I2C_0, 0x31, 0x1a, &uData[0],1);
 	uData[0] = 0x32;
@@ -103,7 +115,9 @@ void mainloop(void)
 	I2C0_Interrupt_Read_Data_8bit_SubAdd(I2C_0, 0x31, 0x03, &uData[0], 1);
 	cprintf("\n\r read[0x03] = 0x%02x",uData[0]);
 
-	ADAU1761_Init();
+#ifdef ADAU1452_ENABLE
+	I2C1_Interrupt_Read_Data_16bit_SubAdd(0x38, 0xF218, uData, 2);
+	I2C1_Interrupt_Read_Data_16bit_SubAdd(0x38, 0xF218, uData, 2);
 #endif
 	while(1) {
 		/*User Code start*/

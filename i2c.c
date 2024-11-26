@@ -27,7 +27,7 @@
 
 /** Max buffer length */
 #define BUFFER_SIZE	(63) //KMS241125_2 Data Buffer Size (Excluded slave address byte size)
-#define LONG_BUFFER_SIZE (1734) //KMS241125_2 : This buffer size includes I2C sub-address also !!!
+#define LONG_BUFFER_SIZE (3958) //KMS241125_2 : This buffer size includes I2C sub-address also !!!
 
 /** Max I2C Channel Number */
 #define I2C_IP_INDEX_MAX			(3)

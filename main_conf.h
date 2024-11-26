@@ -45,10 +45,11 @@ extern "C"
 #define I2C_1_ENABLE			(1) //Use I2C 1 for the communication with ADC/DAC - PF0:SCL1, PF1:SDA1.
 #define TIMER20_COUNTER_ENABLE	(1) //Enable 100ms timer
 
+#define ADAU1452_ENABLE			(1) //KMS241126_1 : Added ADAU1452(DSP) code
 #define ADAU1761_ENABLE			(1) //KMS241125_2 : Added ADAU1761(ADC/DAC) code
 
 #ifdef I2C_0_ENABLE
-#define _I2C_DEBUG_MSG		(1) //Debug message for I2C especially TAS3251
+//#define _I2C_DEBUG_MSG		(1) //Debug message for I2C especially TAS3251
 #endif
 
 /* Private macro -------------------------------------------------------------*/

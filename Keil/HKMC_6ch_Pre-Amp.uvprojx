@@ -476,6 +476,16 @@
               <FileType>1</FileType>
               <FilePath>..\main.c</FilePath>
             </File>
+            <File>
+              <FileName>ADAU1761.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\ADAU1761.c</FilePath>
+            </File>
+            <File>
+              <FileName>ADAU1452.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\ADAU1452.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
