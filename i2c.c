@@ -26,7 +26,8 @@
 #define TEST_I2Cn	(2) // I2C2
 
 /** Max buffer length */
-#define BUFFER_SIZE	(64-1) // Data Buffer Size (Excluded slave address byte size)
+#define BUFFER_SIZE	(63) //KMS241125_2 Data Buffer Size (Excluded slave address byte size)
+#define LONG_BUFFER_SIZE (1734) //KMS241125_2 : This buffer size includes I2C sub-address also !!!
 
 /** Max I2C Channel Number */
 #define I2C_IP_INDEX_MAX			(3)
@@ -46,7 +47,6 @@
 /** Manual Bus Control Test */
 //#define I2C_MANUAL_BUS_CONTROL //Can't use this one
 
-//#define SCL_TIMEOUT
 
 /*******************************************************************************
 * Private Typedef
@@ -100,6 +100,7 @@ static Bool isMasterMode = TRUE; // Interrupt Master FLag
 *******************************************************************************/
 static void Buffer_Init(uint8_t* buffer, uint8_t type, uint16_t len);
 static void I2C_ChannelConfig(const I2Cn_PORT_Type * pConfig, uint32_t Speed, I2Cn_Type Type);
+static void Main_I2CnIRQHandler(I2C_Type *pI2Cx);
 
 /*******************************************************************************
 * Public Function
@@ -140,7 +141,7 @@ static void I2C_ChannelConfig(const I2Cn_PORT_Type * pConfig, uint32_t Speed, I2
 #if defined(I2C_0_ENABLE) || defined(I2C_1_ENABLE)
 void I2C_Configure(I2C_SPEED_STEP speed, I2Cn_Type mode) //Define I2C Speed and Master/Slave
 {
-#if 1//def I2C_MANUAL_BUS_CONTROL
+#ifdef I2C_MANUAL_BUS_CONTROL
 	HAL_I2C_SetManualBus(i2c0_Master->pI2Cx, I2C_SCL, I2C_OUTPUT_LOW, ENABLE);
 	HAL_I2C_SetManualBus(i2c0_Master->pI2Cx, I2C_SCL, I2C_OUTPUT_HIGH_OPENDRAIN, ENABLE);
 	HAL_I2C_SetManualBus(i2c0_Master->pI2Cx, I2C_SDA, I2C_OUTPUT_LOW, ENABLE);
@@ -148,7 +149,7 @@ void I2C_Configure(I2C_SPEED_STEP speed, I2Cn_Type mode) //Define I2C Speed and 
 #endif
 
 	I2C_ChannelConfig(i2c0_Master, speed, mode); //I2C0 Config
-	//I2C_ChannelConfig(i2c1_Master, speed, mode); //I2C1 Config
+	I2C_ChannelConfig(i2c1_Master, speed, mode); //I2C1 Config
 }
 #endif
 
@@ -164,6 +165,7 @@ static void Main_I2CnIRQHandler(I2C_Type *pI2Cx) {
 	Reg32 = pI2Cx->ST;
 	if ((Reg32 & I2C_ST_SLT_FLAG) == I2C_ST_SLT_FLAG) {
 		HAL_I2C_ClearSclLowTimeoutFlag(pI2Cx); // Clear SCL Low Time-out
+		complete = TRUE; //KMS241125_3 : Added code to break out of the infinite loop. But Need to check this code later !!!
 	}
 #endif
 	if (isMasterMode) { // Master Mode
@@ -209,22 +211,179 @@ void I2C2_SPI20_IRQHandler_MasterInterrupt(void) {
 /**********************************************************************
  * @brief		I2C_Interrupt_Write_Data
  * @param[in]	uDeviceId : I2C Device Address
+ *				uSubAddr_16bit : I2C Sub Address(Register Address)
+ *				*uData : Pointer of write data
+ *				uDataSize : Size of write data only(excepting uSubAddr_16bit(2byte))
+ * @return 		None
+ **********************************************************************/
+void I2C1_Interrupt_Write_Data_16bit_SubAdd(uint8_t uDeviceId, uint16_t uSubAddr_16bit, uint8_t *uData, uint16_t uDataSize)
+{
+	uint8_t MasterWriteBuffer[LONG_BUFFER_SIZE]; //1024 Byte = 2 byte(I2C Sub Address) + 1022 byte(Data)
+	I2C_M_SETUP_Type MasterCfg;
+	int i = 0;
+
+#ifdef _I2C_DEBUG_MSG
+	cprintf("%s_Interrupt_Write_Data_16bit_SubAdd\r\n", i2c1_Master->I2cName);
+#endif
+	if(uDataSize > LONG_BUFFER_SIZE)
+	{
+#ifdef _I2C_DEBUG_MSG
+		cputs("\r\n I2C1_Interrupt_Write_Data_16bit_SubAdd() : Error !!!\r\n");
+#endif
+		return;
+	}
+#ifdef I2C_MANUAL_BUS_CONTROL
+    HAL_I2C_SetManualBus(i2c1_Master->pI2Cx, I2C_SCL, I2C_OUTPUT_LOW, ENABLE);
+    HAL_I2C_SetManualBus(i2c1_Master->pI2Cx, I2C_SCL, I2C_OUTPUT_HIGH_OPENDRAIN, ENABLE);
+    HAL_I2C_SetManualBus(i2c1_Master->pI2Cx, I2C_SDA, I2C_OUTPUT_LOW, ENABLE);
+    HAL_I2C_SetManualBus(i2c1_Master->pI2Cx, I2C_SDA, I2C_OUTPUT_HIGH_OPENDRAIN, ENABLE);
+#endif
+
+#ifdef SCL_TIMEOUT
+	HAL_I2C_SetSclLowTimeout(i2c1_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); 
+#endif
+
+#ifdef _I2C_DEBUG_MSG
+    cprintf("Buffer Size : %d", LONG_BUFFER_SIZE);
+#endif
+
+    /* MASTER WRITE : Ready Writebuffer to transmit data by master */
+    //--------------------------------------------------------
+    //| Slave Address | Data [0] | Data [1] | ... | Data [n] |
+    //--------------------------------------------------------
+    Buffer_Init(MasterWriteBuffer, 0, LONG_BUFFER_SIZE); // Buffer Init
+    MasterCfg.sl_addr7bit = uDeviceId; // I2C Device address
+	MasterWriteBuffer[0] = (uSubAddr_16bit&0xff00) >> 8; //High byte Sub address 
+	MasterWriteBuffer[1] = (uSubAddr_16bit&0xff); //High byte Sub address 
+	
+	for(i=0;i<uDataSize;i++) //uDataSize includes only Data size(excepting I2C Sub-Address)
+	{
+	    MasterWriteBuffer[i+2] = uData[i];
+	}
+	
+	MasterCfg.tx_data = MasterWriteBuffer;
+    MasterCfg.tx_length = uDataSize+2; //KMS241125_4 : Need to add the size of sub-address(2byte) in total size.
+	
+	complete = FALSE;
+
+#ifdef _I2C_DEBUG_MSG	
+  	cputs("\r\n MASTER Write Test START\r\n");
+#endif
+
+	HAL_I2C_MasterTransmitData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+	
+    while(!complete);
+
+#ifdef _I2C_DEBUG_MSG
+ 	cputs("\r\n MASTER Write Test OK\r\n");
+#endif
+}
+
+/**********************************************************************
+ * @brief		I2C_Interrupt_Read_Data
+ * @param[in]	uDeviceId : I2C Device Address
+ *				uSubAddr_16bit : I2C Sub Address(Register Address)
+ *				*uData : Pointer of Read buffer
+ *				uDataSize : Size of write data only(excepting uSubAddr_16bit(2byte))
+ * @return 		None
+ **********************************************************************/
+void I2C1_Interrupt_Read_Data_16bit_SubAdd(uint8_t uDeviceId, uint16_t uSubAddr_16bit, uint8_t *uData, uint16_t uDataSize)
+{
+	uint8_t MasterReadBuffer[LONG_BUFFER_SIZE];
+	uint8_t uSubAddr[2];
+	I2C_M_SETUP_Type MasterCfg;
+	int i = 0;
+
+#ifdef _I2C_DEBUG_MSG
+	cprintf("%s_Interrupt_Read_Data_16bit_SubAdd\r\n", i2c1_Master->I2cName);
+#endif
+
+	if(uDataSize > LONG_BUFFER_SIZE)
+	{
+#ifdef _I2C_DEBUG_MSG
+		cputs("\r\n I2C1_Interrupt_Read_Data_16bit_SubAdd() : Error !!!\r\n");
+#endif
+		return;
+	}
+
+#ifdef I2C_MANUAL_BUS_CONTROL
+    HAL_I2C_SetManualBus(i2c1_Master->pI2Cx, I2C_SCL, I2C_OUTPUT_LOW, ENABLE);
+    HAL_I2C_SetManualBus(i2c1_Master->pI2Cx, I2C_SCL, I2C_OUTPUT_HIGH_OPENDRAIN, ENABLE);
+    HAL_I2C_SetManualBus(i2c1_Master->pI2Cx, I2C_SDA, I2C_OUTPUT_LOW, ENABLE);
+    HAL_I2C_SetManualBus(i2c1_Master->pI2Cx, I2C_SDA, I2C_OUTPUT_HIGH_OPENDRAIN, ENABLE);
+#endif
+
+#ifdef SCL_TIMEOUT
+	HAL_I2C_SetSclLowTimeout(i2c1_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); // SCL Low Time Period : (1/PCLK)*4*(SLTPDR+1) = (1/32MHz)*4*(0xFFFFFF+1)2.09s
+#endif
+
+#ifdef _I2C_DEBUG_MSG
+    cprintf("Buffer Size : %d", LONG_BUFFER_SIZE);
+#endif
+
+    /* MASTER READ: the data is transmitted by slave */
+    //--------------------------------------------------------
+    //| Slave Address | Data [0] | Data [1] | ... | Data [n] |
+    //--------------------------------------------------------
+    Buffer_Init(MasterReadBuffer, 0, LONG_BUFFER_SIZE);
+
+	uSubAddr[0] = (uSubAddr_16bit&0xff00) >> 8; //High byte Sub address 
+	uSubAddr[1] = (uSubAddr_16bit&0xff); //High byte Sub address 
+	
+	MasterCfg.sl_addr7bit = uDeviceId;
+    MasterCfg.tx_data = uSubAddr;
+    MasterCfg.tx_length = 2;
+    MasterCfg.rx_data = MasterReadBuffer;
+    MasterCfg.rx_length = uDataSize;
+	
+	complete = FALSE;
+
+#ifdef _I2C_DEBUG_MSG
+  	cputs("\r\n MASTER Read Test START\r\n");
+#endif
+
+	HAL_I2C_MasterReceiveData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+	
+    while(!complete);
+	
+#ifdef _I2C_DEBUG_MSG
+	cputs("\r\n MASTER Read Test OK \r\n");
+#endif
+
+	 for(i=0;i<uDataSize;i++)
+	{
+		uData[i] = MasterReadBuffer[i];
+#ifdef _I2C_DEBUG_MSG
+		cprintf("\n+++I2C Read Data : %d\n",uData[i]);
+#endif		
+	}
+}
+
+/**********************************************************************
+ * @brief		I2C_Interrupt_Write_Data
+ * @param[in]	uDeviceId : I2C Device Address
  *				uSubAddr_8bit : I2C Sub Address(Register Address)
  *				*uData : Pointer of write data
  *				uDataSize : Size of write data
  * @return 		None
  **********************************************************************/
-void I2C0_Interrupt_Write_Data_8bit_SubAdd(uint8_t uDeviceId, uint8_t uSubAddr_8bit, uint8_t *uData, uint8_t uDataSize)
+void I2C0_Interrupt_Write_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uint8_t uSubAddr_8bit, uint8_t *uData, uint8_t uDataSize)
 {
 	uint8_t MasterWriteBuffer[BUFFER_SIZE];
 	I2C_M_SETUP_Type MasterCfg;
 	int i = 0;
-	
-	cprintf("%s_Interrupt_Write_Data_8bit_SubAdd\r\n", i2c0_Master->I2cName);
 
+#ifdef _I2C_DEBUG_MSG
+	if(num == I2C_0)
+		cprintf("%s_Interrupt_Write_Data_8bit_SubAdd\r\n", i2c0_Master->I2cName);
+	else
+		cprintf("%s_Interrupt_Write_Data_8bit_SubAdd\r\n", i2c1_Master->I2cName);
+#endif
 	if(uDataSize > BUFFER_SIZE)
 	{
+#ifdef _I2C_DEBUG_MSG
 		cputs("\r\n I2C0_Interrupt_Write_Data_8bit_SubAdd() : Error !!!\r\n");
+#endif
 		return;
 	}
 #ifdef I2C_MANUAL_BUS_CONTROL
@@ -235,10 +394,15 @@ void I2C0_Interrupt_Write_Data_8bit_SubAdd(uint8_t uDeviceId, uint8_t uSubAddr_8
 #endif
 
 #ifdef SCL_TIMEOUT
-	HAL_I2C_SetSclLowTimeout(i2c0_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); // SCL Low Time Period : (1/PCLK)*4*(SLTPDR+1) = (1/32MHz)*4*(0xFFFFFF+1)2.09s
+	if(num == I2C_0)
+		HAL_I2C_SetSclLowTimeout(i2c0_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); // SCL Low Time Period : (1/PCLK)*4*(SLTPDR+1) = (1/32MHz)*4*(0xFFFFFF+1)2.09s
+	else
+		HAL_I2C_SetSclLowTimeout(i2c1_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); 
 #endif
 
+#ifdef _I2C_DEBUG_MSG
     cprintf("Buffer Size : %d", BUFFER_SIZE);
+#endif
 
     /* MASTER WRITE : Ready Writebuffer to transmit data by master */
     //--------------------------------------------------------
@@ -255,11 +419,23 @@ void I2C0_Interrupt_Write_Data_8bit_SubAdd(uint8_t uDeviceId, uint8_t uSubAddr_8
 	
 	MasterCfg.tx_data = MasterWriteBuffer;
     MasterCfg.tx_length = uDataSize+1;
+	
+	complete = FALSE;
 
+#ifdef _I2C_DEBUG_MSG	
   	cputs("\r\n MASTER Write Test START\r\n");
+#endif
+
+	if(num ==I2C_0)
     HAL_I2C_MasterTransmitData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+	else
+		HAL_I2C_MasterTransmitData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+	
     while(!complete);
- 	cputs("\r\n MASTER Write Test OK \r\n");
+
+#ifdef _I2C_DEBUG_MSG
+ 	cputs("\r\n MASTER Write Test OK\r\n");
+#endif
 }
 
 /**********************************************************************
@@ -270,17 +446,24 @@ void I2C0_Interrupt_Write_Data_8bit_SubAdd(uint8_t uDeviceId, uint8_t uSubAddr_8
  *				uDataSize : Size of Read data
  * @return 		None
  **********************************************************************/
-void I2C0_Interrupt_Read_Data_8bit_SubAdd(uint8_t uDeviceId, uint8_t uSubAddr_8bit, uint8_t *uData, uint8_t uDataSize)
+void I2C0_Interrupt_Read_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uint8_t uSubAddr_8bit, uint8_t *uData, uint8_t uDataSize)
 {
-	uint8_t MasterReadBuffer[BUFFER_SIZE-1];
+	uint8_t MasterReadBuffer[BUFFER_SIZE];
 	I2C_M_SETUP_Type MasterCfg;
 	int i = 0;
-	
-	cprintf("%s_Interrupt_Write_Data_8bit_SubAdd\r\n", i2c0_Master->I2cName);
+
+#ifdef _I2C_DEBUG_MSG
+	if(num == I2C_0)
+		cprintf("%s_Interrupt_Read_Data_8bit_SubAdd\r\n", i2c0_Master->I2cName);
+	else
+		cprintf("%s_Interrupt_Read_Data_8bit_SubAdd\r\n", i2c1_Master->I2cName);
+#endif
 
 	if(uDataSize > BUFFER_SIZE)
 	{
+#ifdef _I2C_DEBUG_MSG
 		cputs("\r\n I2C0_Interrupt_Read_Data_8bit_SubAdd() : Error !!!\r\n");
+#endif
 		return;
 	}
 
@@ -292,26 +475,43 @@ void I2C0_Interrupt_Read_Data_8bit_SubAdd(uint8_t uDeviceId, uint8_t uSubAddr_8b
 #endif
 
 #ifdef SCL_TIMEOUT
+	if(num == I2C_0)
 	HAL_I2C_SetSclLowTimeout(i2c0_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); // SCL Low Time Period : (1/PCLK)*4*(SLTPDR+1) = (1/32MHz)*4*(0xFFFFFF+1)2.09s
+	else
+		HAL_I2C_SetSclLowTimeout(i2c1_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); // SCL Low Time Period : (1/PCLK)*4*(SLTPDR+1) = (1/32MHz)*4*(0xFFFFFF+1)2.09s
 #endif
 
+#ifdef _I2C_DEBUG_MSG
     cprintf("Buffer Size : %d", BUFFER_SIZE);
+#endif
 
     /* MASTER READ: the data is transmitted by slave */
     //--------------------------------------------------------
     //| Slave Address | Data [0] | Data [1] | ... | Data [n] |
     //--------------------------------------------------------
-    Buffer_Init(MasterReadBuffer, 0, BUFFER_SIZE-1);
+    Buffer_Init(MasterReadBuffer, 0, BUFFER_SIZE);
     MasterCfg.sl_addr7bit = uDeviceId;
     MasterCfg.tx_data = &uSubAddr_8bit;
     MasterCfg.tx_length = 1;
     MasterCfg.rx_data = MasterReadBuffer;
     MasterCfg.rx_length = uDataSize;
+	
+	complete = FALSE;
 
+#ifdef _I2C_DEBUG_MSG
   	cputs("\r\n MASTER Read Test START\r\n");
+#endif
+
+	if(num == I2C_0)
     HAL_I2C_MasterReceiveData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+	else
+		HAL_I2C_MasterReceiveData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+	
      while(!complete);
+	
+#ifdef _I2C_DEBUG_MSG
   	cputs("\r\n MASTER Read Test OK \r\n");
+#endif
 
 	 for(i=0;i<uDataSize;i++)
 	{
@@ -332,7 +532,7 @@ void I2C0_Interrupt_Read_Data_8bit_SubAdd(uint8_t uDeviceId, uint8_t uSubAddr_8b
  * @return 		None
  **********************************************************************/
 static void Buffer_Init(uint8_t* buffer, uint8_t type, uint16_t len) {
-	uint8_t i;
+	uint16_t i; //KMS241125_4 : To fix 16 bit length for I2C Data
 
 	if (type) {
 		for (i = 0; i < len; i++) {

@@ -25,12 +25,15 @@
 void SystemClock_Config (void);
 /* Private variables ---------------------------------------------------------*/
 
+#ifdef ESTEC_BOARD
+#define USED_HSI //KMS241125_1 : Change from USED_HSEPLL to USED_HSI due to no X-TAL
+#else
 //#define USED_LSI		
 //#define USED_LSE		
-//#define USED_HSI		
 //#define USED_HSE		
 //#define USED_HSIPLL
 #define USED_HSEPLL
+#endif
 
 /**************************************************************************
  * @brief			Initialize default clock for A33M11x Board

@@ -36,6 +36,10 @@ typedef enum {
     SLAVE = 1
 } I2Cn_Type;
 
+typedef enum {
+	I2C_0,
+	I2C_1
+} I2C_Port_No;
 
 /*******************************************************************************
 * Private Variable
@@ -46,14 +50,15 @@ typedef enum {
 *******************************************************************************/
 void Main_TestI2CMasterInterrupt(void);
 
-static void Main_I2CnIRQHandler(I2C_Type *pI2Cx);
 void I2C0_IRQHandler_MasterInterrupt(void);
 void I2C1_IRQHandler_MasterInterrupt(void);
 void I2C2_SPI20_IRQHandler_MasterInterrupt(void);
 
-void I2C0_Interrupt_Write_Data_8bit_SubAdd(uint8_t uDeviceId, uint8_t uSubAddr_8bit, uint8_t *uData, uint8_t uDataSize);
-void I2C0_Interrupt_Read_Data_8bit_SubAdd(uint8_t uDeviceId, uint8_t uSubAddr_8bit, uint8_t *uData, uint8_t uDataSize);
+void I2C0_Interrupt_Write_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uint8_t uSubAddr_8bit, uint8_t *uData, uint8_t uDataSize);
+void I2C0_Interrupt_Read_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uint8_t uSubAddr_8bit, uint8_t *uData, uint8_t uDataSize);
 
+void I2C1_Interrupt_Write_Data_16bit_SubAdd(uint8_t uDeviceId, uint16_t uSubAddr_16bit, uint8_t *uData, uint16_t uDataSize);
+void I2C1_Interrupt_Read_Data_16bit_SubAdd(uint8_t uDeviceId, uint16_t uSubAddr_16bit, uint8_t *uData, uint16_t uDataSize);
 
 //KMS241120_1 : Add new function and new defines
 void I2C_Configure(I2C_SPEED_STEP speed, I2Cn_Type mode); //Define I2C Speed and Master/Slave
