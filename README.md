@@ -13,3 +13,11 @@
 ## 2024-11-26
   - Added ADAU1452(DSP) code. //KMS241126_1
   - I2C read function(HAL_I2C_MasterReceiveData()) has some problem which can't not read data. so I fixed it. //KMS241126_2
+  - Added GPIO code. //KMS241126_3
+
+## 2024-11-27
+  - Made test codes for veryfing the functions with MCU EVK. //KMS241126_1
+  - Implemented GPIO function by product spec. //KMS241127_2
+  - Enabled _TIMER2n to use TIMER20/21. //KMS241127_3
+  - Added TIMER20 code. This is timeer for ACC OFF delay. //KMS241127_4
+  - Added TIMER21 code. This is just continueous tick. //KMS241127_5

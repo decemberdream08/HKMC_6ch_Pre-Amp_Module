@@ -14,9 +14,7 @@
  * Reference: https://opensource.org/licenses/BSD-3-Clause
  ******************************************************************************/
 #include "A31G22x_it.h"
-#ifdef I2C_0_ENABLE
-#include "i2c.h"
-#endif
+
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -65,7 +63,7 @@ void SYSCLKFAIL_IRQHandler(void) {
 
 /* GPIO */
 void GPIOAB_IRQHandler(void) {
-
+	GPIOAB_IRQHandler_IT(); //KMS24112_6 : External Interrupt Setting for PA0
 }
 
 void GPIOCD_IRQHandler(void) {
@@ -110,11 +108,15 @@ void TIMER16_IRQHandler(void) {
 }
 
 void TIMER20_IRQHandler(void) {
-
+#ifdef TIMER20_ENABLE
+	TIMER20_IRQHandler_Interrupt();
+#endif
 }
 
 void TIMER21_IRQHandler(void) {
-
+#ifdef TIMER21_ENABLE
+	TIMER21_IRQHandler_Interrupt();
+#endif
 }
 
 void TIMER30_IRQHandler(void) {

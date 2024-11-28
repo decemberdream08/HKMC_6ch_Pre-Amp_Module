@@ -49,7 +49,7 @@
 //#define _TIMER1n
 
 /* TIMER2n ------------------------------- */
-//#define _TIMER2n
+#define _TIMER2n //KMS241127_3
 
 /* TIMER30 ------------------------------- */
 //#define _TIMER30

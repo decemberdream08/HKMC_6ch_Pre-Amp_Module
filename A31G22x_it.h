@@ -22,10 +22,19 @@
 #include "main_conf.h"
 
 /* prototypes ----------------------------------------------------------------*/
+#ifdef I2C_0_ENABLE
 extern void I2C0_IRQHandler_MasterInterrupt(void);
+#endif
+#ifdef I2C_1_ENABLE
 extern void I2C1_IRQHandler_MasterInterrupt(void);
+#endif
 extern void I2C2_SPI20_IRQHandler_MasterInterrupt(void);
-
+#ifdef TIMER20_ENABLE
+extern void TIMER20_IRQHandler_Interrupt(void);
+#endif //TIMER20_ENABLE
+#ifdef TIMER21_ENABLE
+extern void TIMER21_IRQHandler_Interrupt(void);
+#endif //TIMER21_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
