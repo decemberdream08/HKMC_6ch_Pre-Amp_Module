@@ -40,7 +40,7 @@ extern "C"
 #endif
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-//Feature
+//Functions
 #define ESTEC_BOARD			(1)
 #define I2C_0_ENABLE			(1) //Use I2C 0 for the communication with DSP/A2B Transceiver - PF6:SCL0, PF7:SDA0. If you don't use I2C0, please make sure to disable this macro !!!
 #define I2C_1_ENABLE			(1) //Use I2C 1 for the communication with ADC/DAC - PF0:SCL1, PF1:SDA1.
@@ -48,12 +48,13 @@ extern "C"
 #define GPIO_ENABLE				(1) //KMS241125_5 : Added GPIO code
 #define TIMER20_ENABLE			(1) //KMS241127_4 : Added TIMER20 code. This is timer for ACC OFF only.
 #define TIMER21_ENABLE			(1) //KMS241127_5 : Added TIMER20 code. This is just continueous tick.
+#define DEEP_SLEEP_MODE_ENABLE		(1) //KMS241128_1 : Added DEEP SLEEP mode code.
 
-//Pheriperal Device
+//Pheriperal Devices
 #define ADAU1452_ENABLE			(1) //KMS241126_1 : Added ADAU1452(DSP) code
 #define ADAU1761_ENABLE			(1) //KMS241125_2 : Added ADAU1761(ADC/DAC) code
 
-//Test
+//Tests
 #define MCU_EVK_FUNCTION_TEST			(1) //KMS241127_1 : Defined test codes for MCU EVK board
 
 #ifdef MCU_EVK_FUNCTION_TEST
@@ -61,7 +62,7 @@ extern "C"
 #define MCU_EVK_GPIO_TEST				(1) //GPIO, External Interrupt
 #endif //MCU_EVK_FUNCTION_TEST
 
-//Debug Message
+//Debug Messages
 #ifdef _DEBUG_MSG
 #ifdef I2C_0_ENABLE
 //#define _I2C_DEBUG_MSG		(1) //Debug message for I2C especially TAS3251
@@ -74,6 +75,9 @@ extern "C"
 #endif
 #ifdef TIMER21_ENABLE
 //#define TIMER21_DEBUG_MSG		(1) // Debug message for TIMER21
+#endif
+#ifdef DEEP_SLEEP_MODE_ENABLE
+//#define DEEP_SLEEP_MODE_DEBUG_MSG		(1) // Debug message for DEEP SLEEP MODE
 #endif
 #endif //_DEBUG_MSG
 
@@ -92,6 +96,9 @@ extern void SystemClock_Config(void);
 
 #ifdef GPIO_ENABLE
 extern void GPIOAB_IRQHandler_IT(void); //KMS24112_6 : External Interrupt Setting for PA0
+#endif
+#ifdef DEEP_SLEEP_MODE_ENABLE
+extern Bool B_Deep_Sleep;
 #endif
 
 #ifdef __cplusplus

@@ -85,7 +85,7 @@
 //#define _CRC
 
 /* PWR ------------------------------- */
-//#define _PWR
+#define _PWR //KMS241128_1
 
 /* CORE ------------------------------- */
 #define _CORE

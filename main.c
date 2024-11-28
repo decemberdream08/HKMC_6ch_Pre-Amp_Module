@@ -29,11 +29,18 @@
 #ifdef TIMER21_ENABLE
 #include "timer21.h"
 #endif
+#ifdef DEEP_SLEEP_MODE_ENABLE
+#include "A31G22x_hal_pwr.h"
+#endif
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+#ifdef DEEP_SLEEP_MODE_ENABLE
+Bool B_Deep_Sleep = FALSE;
+#endif
+
 /* Private define ------------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 void DEBUG_MenuPrint(void);
@@ -43,6 +50,9 @@ void MCU_EVK_Function_Test(void);
 #ifdef GPIO_ENABLE
 void EXTI_PortA_Configure(void); //KMS24112_6 : External Interrupt Setting for PA0
 void GPIO_Configure(void);
+#endif
+#ifdef DEEP_SLEEP_MODE_ENABLE
+void DEEP_SLEEP_EXIT_Configure(void);
 #endif
 
 void mainloop(void);
@@ -91,6 +101,73 @@ void delay_ms(uint32_t m_ms)
 	}
 }
 
+#ifdef DEEP_SLEEP_MODE_ENABLE
+/**********************************************************************
+ * @brief		SysTick handler sub-routine (1ms)
+ * @param[in]	None
+ * @return 		None
+ **********************************************************************/
+void SysTick_Handler_IT (void) 					
+{
+	/* SysTick Interrupt Handler @ 1000Hz*/
+	if(MilliSec)MilliSec--;
+}
+
+/**********************************************************************
+ * @brief		DEEP_SLEEP_EXIT_Configure
+ * @param[in]	None
+ * @return 	None
+ **********************************************************************/
+void DEEP_SLEEP_EXIT_Configure(void)
+{
+	HAL_GPIO_EXTI_Config(PA, 0, PCU_INTERRUPT_MODE_EDGE, PCU_INTERRUPT_CTRL_EDGE_RISING);
+	
+	HAL_SCU_SetResetSrc(RST_LVDRST, DISABLE);	// LVR Disable (Master)
+	
+	NVIC_SetPriority(GPIOAB_IRQn, 3);
+	NVIC_EnableIRQ(GPIOAB_IRQn);	
+	
+	HAL_SCU_WakeUpSRCCmd(WAKEUP_GPIOA, ENABLE);
+	
+	HAL_PWR_AlwaysOnLSIForDeepSleep(LSIAON_ENABLE, BGRAON_ENABLE, VDCAON_ENABLE);
+}
+
+/**********************************************************************
+ * @brief		PWR_DeepSleepRun
+ * @param[in]	None
+ * @return 	None
+ **********************************************************************/
+void PWR_DeepSleepRun(void)
+{    
+	DEEP_SLEEP_EXIT_Configure();
+
+#ifdef DEEP_SLEEP_MODE_DEBUG_MSG	
+	cprintf("Enter Deep Sleep... Connect PA0 pin to High(ACC ON) to exit sleep mode!");
+#endif
+	// Change Clock to LSI
+	HAL_SCU_SystemClockChange(SCCR_LSI);
+	
+	HAL_SCU_LSE_ClockConfig(DISABLE);
+	HAL_SCU_HSI_ClockConfig(DISABLE);
+	HAL_SCU_HSE_ClockConfig(DISABLE);
+		
+	HAL_PWR_EnterDeepSleep();
+
+	//RESET
+	//HAL_SCU_SetResetSrc(RST_SWRST, ENABLE);
+	//SCU->SCR |= (0x9EB30000|SCU_SCR_SWRST_Msk);
+
+	NVIC_ClearPendingIRQ(GPIOAB_IRQn);
+
+	SystemClock_Config();
+
+	EXTI_PortA_Configure(); //To return original external interrupt setting for PA0 when MCU wake-up in sleep mode.
+#ifdef DEEP_SLEEP_MODE_DEBUG_MSG	
+	cprintf("\n\rWaked Up from Deep Sleep");
+#endif
+}
+#endif //DEEP_SLEEP_MODE_ENABLE
+
 #ifdef GPIO_ENABLE
 /**********************************************************************
  * @brief		Power_Control
@@ -101,19 +178,18 @@ void Power_Control(void) //KMS241127_2 : ACC ON/OFF contorl functtion
 {
 	if(B_Need_ACC_On) //Need to make PA1/PA2 to High
 	{
+		B_Need_ACC_On = FALSE;
+
 		HAL_GPIO_SetPin(PA, _BIT(1));
 		HAL_GPIO_SetPin(PA, _BIT(2));
-		
-		B_Need_ACC_On = FALSE;
 	}
 	else if(B_Need_ACC_Off) //Need to make PA1/PA2 to Low. But especially PA2 should be 1sec later.
-	{
+	{		
+		B_Need_ACC_Off = FALSE;
 #ifdef TIMER20_ENABLE
 		TIMER20_Interrupt_Mode_Run(TRUE); //1sec Timer Start for PA2
 #endif
 		HAL_GPIO_ClearPin(PA, _BIT(1));
-
-		B_Need_ACC_Off = FALSE;
 	}
 	else
 	{
@@ -270,14 +346,14 @@ void mainloop(void)
 #endif
 #ifdef TIMER21_ENABLE
 	TIMER21_Configure();
+#endif	
+#ifdef GPIO_ENABLE
+	EXTI_PortA_Configure();
 #endif
 
 	/* Enable IRQ Interrupts */
 	__enable_irq();
 
-#ifdef GPIO_ENABLE
-	EXTI_PortA_Configure();
-#endif
 #ifdef ADAU1452_ENABLE
 	ADAU1452_Init(); //DSP Init
 #endif
@@ -292,6 +368,13 @@ void mainloop(void)
 		/*User Code start*/
 #ifdef GPIO_ENABLE
 		Power_Control(); //KMS241127_2 : Power Control is executed here.
+#endif
+#ifdef DEEP_SLEEP_MODE_ENABLE
+		if(B_Deep_Sleep == TRUE)
+		{
+			B_Deep_Sleep = FALSE;
+			PWR_DeepSleepRun();
+		}
 #endif
 	}
 }
