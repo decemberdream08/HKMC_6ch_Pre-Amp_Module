@@ -28,3 +28,4 @@
 ## 2024-11-29
   - Implemented MCU reset after wake-up from Deep-sleep.//KMS241129_1
   - Implemented lowest power consumption under MCU deep-sleep mode. //KMS241129_2
+  - To avoid mismatching between ACC ON pin and Deep-Sleep Mode, Need to check whether ACC Off or ACC On again before MCU goes deep-sleep mode. //KMS241129_3

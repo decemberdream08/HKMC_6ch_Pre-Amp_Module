@@ -36,7 +36,7 @@ void TIMER20_IRQHandler_Interrupt(void);
 void TIMER20_Interrupt_Mode_Run(Bool On)
 {
 #ifdef TIMER20_DEBUG_MSG
-	cprintf("\n\rOn = %d\r\n",On);
+	cprintf("\n\rTimer On = %d\r\n",On);
 #endif
 
 	if(On)
@@ -113,7 +113,7 @@ void TIMER20_Configure(void)
 
 void TIMER20_Interrupt_Service_Routine( void )
 {
-	HAL_GPIO_ClearPin(PA, _BIT(2));
+	//HAL_GPIO_ClearPin(PA, _BIT(2)); //KMS241129_3 : Move to main.c
 	TIMER20_Interrupt_Mode_Run(FALSE);
 
 	B_Deep_Sleep = TRUE;

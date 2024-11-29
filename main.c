@@ -404,6 +404,9 @@ void mainloop(void)
 	}
 #endif
 
+#ifdef _DEBUG_MSG
+	cputs("\n\rInit Done !!!");
+#endif
 	while(1) {
 		/*User Code start*/
 #ifdef GPIO_ENABLE
@@ -413,7 +416,12 @@ void mainloop(void)
 		if(B_Deep_Sleep == TRUE)
 		{
 			B_Deep_Sleep = FALSE;
-			PWR_DeepSleepRun();
+
+			if(ACC_On_State() == FALSE) //KMS241129_3 : Need to check whether ACC Off or ACC On again before MCU goes deep-sleep mode
+			{
+				HAL_GPIO_ClearPin(PA, _BIT(2)); //KMS241129_3 : Move to here from time20.c!!!
+				PWR_DeepSleepRun();
+			}
 		}
 #endif
 	}
