@@ -21,7 +21,7 @@
 /* Private variables -------------------------------------------------*/
 TIMER2n_CFG_Type TIMER21_Config;
 
-static uint32_t timer20_100ms_count = 0, timer20_500ms_count = 0, timer20_1s_count = 0;
+static uint32_t timer21_100ms_count = 0, timer21_500ms_count = 0, timer21_1s_count = 0;
 
 
 /* Private define ----------------------------------------------------*/
@@ -96,22 +96,22 @@ void TIMER21_Configure(void) //100ms Timer
 
 static void TIMER21_Interrupt_Service_Routine( void )
 {
-	if(!(timer20_100ms_count%5))
+	if(!(timer21_100ms_count%5))
 	{
-		if(timer20_500ms_count%2)
+		if(timer21_500ms_count%2)
 		{
-			timer20_1s_count++;
+			timer21_1s_count++;
 #ifdef TIMER21_DEBUG_MSG
-			cprintf("\n\rtimer20_1s_count = %d\r\n",timer20_1s_count);
+			cprintf("\n\rtimer21_1s_count = %d\r\n",timer21_1s_count);
 #endif
 		}
 
-		timer20_500ms_count++;
+		timer21_500ms_count++;
 	}
 
-	timer20_100ms_count++;
+	timer21_100ms_count++;
 }
 
-#endif //TIMER20_CAPTURE_ENABLE
+#endif //TIMER21_ENABLE
 
 
