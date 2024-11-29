@@ -50,9 +50,7 @@ void PendSV_Handler(void)
 
 void SysTick_Handler(void)
 {
-#ifdef DEEP_SLEEP_MODE_ENABLE
-	SysTick_Handler_IT();
-#endif
+
 }
 
 /* SYSTEM */
