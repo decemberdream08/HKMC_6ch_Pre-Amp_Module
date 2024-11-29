@@ -19,8 +19,12 @@
   - Made test codes for veryfing the functions with MCU EVK. //KMS241127_1
   - Implemented GPIO function by product spec. //KMS241127_2
   - Enabled _TIMER2n to use TIMER20/21. //KMS241127_3
-  - Added TIMER20 code. This is timeer for ACC OFF delay. //KMS241127_4
+  - Added TIMER20 code. This is timer for ACC OFF delay. //KMS241127_4
   - Added TIMER21 code. This is just continueous tick. //KMS241127_5
 
 ## 2024-11-28
   - Implemented DEEP-SLEEP mode. //KMS241128_1
+  
+## 2024-11-29
+  - Implemented MCU reset after wake-up from Deep-sleep.//KMS241129_1
+  - Implemented lowest power consumption under MCU deep-sleep mode. //KMS241129_2

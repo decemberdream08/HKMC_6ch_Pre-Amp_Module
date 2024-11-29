@@ -44,11 +44,15 @@ extern "C"
 #define ESTEC_BOARD			(1)
 #define I2C_0_ENABLE			(1) //Use I2C 0 for the communication with DSP/A2B Transceiver - PF6:SCL0, PF7:SDA0. If you don't use I2C0, please make sure to disable this macro !!!
 #define I2C_1_ENABLE			(1) //Use I2C 1 for the communication with ADC/DAC - PF0:SCL1, PF1:SDA1.
-#define TIMER20_COUNTER_ENABLE	(1) //Enable 100ms timer
-#define GPIO_ENABLE				(1) //KMS241125_5 : Added GPIO code
+#define TIMER20_COUNTER_ENABLE		(1) //Enable 100ms timer.
+#define GPIO_ENABLE					(1) //KMS241125_5 : Added GPIO code.
 #define TIMER20_ENABLE			(1) //KMS241127_4 : Added TIMER20 code. This is timer for ACC OFF only.
 #define TIMER21_ENABLE			(1) //KMS241127_5 : Added TIMER20 code. This is just continueous tick.
 #define DEEP_SLEEP_MODE_ENABLE		(1) //KMS241128_1 : Added DEEP SLEEP mode code.
+#ifdef DEEP_SLEEP_MODE_ENABLE
+#define MCU_RESET_AFTER_WAKE_UP		(1) //KMS241129_1 : Implemented MCU reset after wake-up from Deep-sleep.
+#define DEEP_SLEEP_LOWEST_POWER_CONSUMPTION	(1) //KMS241129_2 : Implemented lowest power consumption under MCU deep-sleep mode.
+#endif
 
 //Pheriperal Devices
 #define ADAU1452_ENABLE			(1) //KMS241126_1 : Added ADAU1452(DSP) code

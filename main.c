@@ -48,6 +48,7 @@ void DEBUG_MenuPrint(void);
 void MCU_EVK_Function_Test(void);
 #endif
 #ifdef GPIO_ENABLE
+Bool ACC_On_State(void); //KMS241129_1 : ACC ON/OFF status check functtion
 void EXTI_PortA_Configure(void); //KMS24112_6 : External Interrupt Setting for PA0
 void GPIO_Configure(void);
 #endif
@@ -120,16 +121,30 @@ void SysTick_Handler_IT (void)
  **********************************************************************/
 void DEEP_SLEEP_EXIT_Configure(void)
 {
+#ifdef DEEP_SLEEP_LOWEST_POWER_CONSUMPTION
+	uint32_t Reg = 0;
+#endif
+
 	HAL_GPIO_EXTI_Config(PA, 0, PCU_INTERRUPT_MODE_EDGE, PCU_INTERRUPT_CTRL_EDGE_RISING);
 	
-	HAL_SCU_SetResetSrc(RST_LVDRST, DISABLE);	// LVR Disable (Master)
-	
+	HAL_SCU_SetResetSrc(RST_LVDRST, DISABLE); //Disable RESET source especially LVRRST = 0/Disable (Master). 1st action of LVD = OFF.
+
+#ifdef DEEP_SLEEP_LOWEST_POWER_CONSUMPTION
+    SCULV->LVRCR = 0x55; //Disable LVR Block(Disable Low Voltage Reset). 2nd action of LVD = OFF.
+    Reg = SCULV->LVICR;
+    SCULV->LVICR = Reg & (~SCULV_LVICR_LVIEN_ENABLE); //Disable LVI Block(Disable low voltage indicator). 3rd(the last) action of LVD = OFF.
+#endif
+
 	NVIC_SetPriority(GPIOAB_IRQn, 3);
 	NVIC_EnableIRQ(GPIOAB_IRQn);	
 	
 	HAL_SCU_WakeUpSRCCmd(WAKEUP_GPIOA, ENABLE);
-	
+
+#ifdef DEEP_SLEEP_LOWEST_POWER_CONSUMPTION
+	HAL_PWR_AlwaysOnLSIForDeepSleep(LSIAON_DISABLE, BGRAON_DISABLE, VDCAON_DISABLE);
+#else
 	HAL_PWR_AlwaysOnLSIForDeepSleep(LSIAON_ENABLE, BGRAON_ENABLE, VDCAON_ENABLE);
+#endif
 }
 
 /**********************************************************************
@@ -153,15 +168,16 @@ void PWR_DeepSleepRun(void)
 		
 	HAL_PWR_EnterDeepSleep();
 
-	//RESET
-	//HAL_SCU_SetResetSrc(RST_SWRST, ENABLE);
-	//SCU->SCR |= (0x9EB30000|SCU_SCR_SWRST_Msk);
-
+#ifdef MCU_RESET_AFTER_WAKE_UP	//RESET
+	HAL_SCU_SetResetSrc(RST_SWRST, ENABLE);
+	SCU->SCR |= (0x9EB30000|SCU_SCR_SWRST_Msk);
+#else
 	NVIC_ClearPendingIRQ(GPIOAB_IRQn);
 
 	SystemClock_Config();
 
 	EXTI_PortA_Configure(); //To return original external interrupt setting for PA0 when MCU wake-up in sleep mode.
+#endif
 #ifdef DEEP_SLEEP_MODE_DEBUG_MSG	
 	cprintf("\n\rWaked Up from Deep Sleep");
 #endif
@@ -169,6 +185,24 @@ void PWR_DeepSleepRun(void)
 #endif //DEEP_SLEEP_MODE_ENABLE
 
 #ifdef GPIO_ENABLE
+/**********************************************************************
+ * @brief		ACC_On_State
+ * @param[in]	None
+ * @return 		TRUE : ACC-ON
+ *				FALSE : ACC-OFF
+ **********************************************************************/
+Bool ACC_On_State(void) //KMS241129_2 : ACC ON/OFF status check functtion to inform ACC status to A2B Slave using
+{
+	Bool B_ACC_On;
+	
+	if(HAL_GPIO_ReadPin(PA) & _BIT(0)) //PA0
+		B_ACC_On = TRUE; //ACC ON
+	else
+		B_ACC_On = FALSE; //ACC OFF
+
+	return B_ACC_On;
+}
+
 /**********************************************************************
  * @brief		Power_Control
  * @param[in]	None
@@ -179,13 +213,20 @@ void Power_Control(void) //KMS241127_2 : ACC ON/OFF contorl functtion
 	if(B_Need_ACC_On) //Need to make PA1/PA2 to High
 	{
 		B_Need_ACC_On = FALSE;
-
+		
+#ifdef GPIO_DEBUG_MSG
+		cputs("\n\rPower On ~~~ !!!");
+#endif
 		HAL_GPIO_SetPin(PA, _BIT(1));
 		HAL_GPIO_SetPin(PA, _BIT(2));
 	}
 	else if(B_Need_ACC_Off) //Need to make PA1/PA2 to Low. But especially PA2 should be 1sec later.
 	{		
 		B_Need_ACC_Off = FALSE;
+
+#ifdef GPIO_DEBUG_MSG
+		cputs("\n\rPower Off ~~~ !!!");
+#endif
 #ifdef TIMER20_ENABLE
 		TIMER20_Interrupt_Mode_Run(TRUE); //1sec Timer Start for PA2
 #endif
@@ -224,7 +265,7 @@ void GPIOAB_IRQHandler_IT(void) //KMS24112_6 : External Interrupt Setting for PA
 		clear_bit = status & 0x00000003;
 		HAL_GPIO_EXTI_ClearPin(PA, status&clear_bit);
 		
-		if(HAL_GPIO_ReadPin(PA) & _BIT(0)) //PA0
+		if(ACC_On_State() == TRUE) //PA0
 		{
 			B_Need_ACC_On = TRUE; //ACC On
 #ifdef GPIO_DEBUG_MSG
@@ -362,6 +403,16 @@ void mainloop(void)
 #endif
 #ifdef MCU_EVK_FUNCTION_TEST
 	MCU_EVK_Function_Test();
+#endif
+#ifdef MCU_RESET_AFTER_WAKE_UP//KMS241129_1 : After MCU reset from wake-up, it need to set ACC_ON status in here. 
+//Becuase MCU interrupt pin has internal pull-up that's why MCU can't detect ACC_ON status on MCU reset.
+	if(ACC_On_State() == TRUE)
+	{
+#ifdef GPIO_DEBUG_MSG
+		cputs("\n\rACC_ON is detected on MCU restart");
+#endif
+		B_Need_ACC_On = TRUE;
+	}
 #endif
 
 	while(1) {
