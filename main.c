@@ -104,17 +104,6 @@ void delay_ms(uint32_t m_ms)
 
 #ifdef DEEP_SLEEP_MODE_ENABLE
 /**********************************************************************
- * @brief		SysTick handler sub-routine (1ms)
- * @param[in]	None
- * @return 		None
- **********************************************************************/
-void SysTick_Handler_IT (void) 					
-{
-	/* SysTick Interrupt Handler @ 1000Hz*/
-	if(MilliSec)MilliSec--;
-}
-
-/**********************************************************************
  * @brief		DEEP_SLEEP_EXIT_Configure
  * @param[in]	None
  * @return 	None
