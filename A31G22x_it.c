@@ -50,7 +50,9 @@ void PendSV_Handler(void)
 
 void SysTick_Handler(void)
 {
-
+#ifdef ESTEC_A2B_STACK_PORTING
+	SysTick_Handler_IT();
+#endif
 }
 
 /* SYSTEM */

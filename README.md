@@ -29,3 +29,20 @@
   - Implemented MCU reset after wake-up from Deep-sleep.//KMS241129_1
   - Implemented lowest power consumption under MCU deep-sleep mode. //KMS241129_2
   - To avoid mismatching between ACC ON pin and Deep-Sleep Mode, Need to check whether ACC Off or ACC On again before MCU goes deep-sleep mode. //KMS241129_3
+  - To merge A2B Stack, we use "ESTEC_A2B_STACK_PORTING" define. //KMS241129_4
+
+## 2024-12-02
+  - To reduce RAM size, we need to modify original ADAU1452_init_Reg.h and ADAU1452.c like below. //KMS241202_1
+  - To reduce RAM size, we need to modify original ADAU1761_init_Reg.h and ADAU1761.c like below. //KMS241202_2
+  - To reduce RAM size, we need to use A2B BCF COMPRESSED. //KMS241202_3
+
+## 2024-12-03
+  - A2B_BCF_FROM_FILE_IO define is not used with ADI_SIGMASTUDIO_BCF at once. //KMS241203_1
+  
+## 2024-12-06
+  - A2B I2C speed is fixed 400K in A2B and MCU both sides. //KMS241206_1
+  
+## 2024-12-10
+  - To commnunicate with A2B Bus through I2C. //KMS241210_1
+  - SCL_TIMEOUT define makes A2B i2c communication error when master try to init peripheral of slave node. //KMS241210_2
+  - I2C_MANUAL_BUS_CONTROL define is not used. //KMS241210_3

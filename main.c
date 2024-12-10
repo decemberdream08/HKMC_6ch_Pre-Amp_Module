@@ -32,14 +32,25 @@
 #ifdef DEEP_SLEEP_MODE_ENABLE
 #include "A31G22x_hal_pwr.h"
 #endif
+#ifdef ESTEC_A2B_STACK_PORTING
+#include "a2bapp.h"
+#endif
+
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+#ifdef ESTEC_A2B_STACK_PORTING
+uint32_t MilliSec = 0;
+#endif
 #ifdef DEEP_SLEEP_MODE_ENABLE
 Bool B_Deep_Sleep = FALSE;
 #endif
+#ifdef ESTEC_A2B_STACK_PORTING
+a2b_App_t gApp_Info;
+#endif
+
 
 /* Private define ------------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -55,7 +66,9 @@ void GPIO_Configure(void);
 #ifdef DEEP_SLEEP_MODE_ENABLE
 void DEEP_SLEEP_EXIT_Configure(void);
 #endif
-
+#ifdef ESTEC_A2B_STACK_PORTING
+void SysTick_Configure(void);
+#endif
 void mainloop(void);
 int main (void);
 
@@ -101,6 +114,31 @@ void delay_ms(uint32_t m_ms)
 		}
 	}
 }
+
+#ifdef ESTEC_A2B_STACK_PORTING
+/**********************************************************************
+ * @brief		SysTick handler sub-routine (1ms)
+ * @param[in]	None
+ * @return 		None
+ **********************************************************************/
+void SysTick_Handler_IT (void) 					
+{
+	/* SysTick Interrupt Handler @ 1000Hz*/
+	MilliSec++;
+}
+
+/**********************************************************************
+ * @brief		SysTick_Configure
+ * @param[in]	None
+ * @return 	None
+ **********************************************************************/
+void SysTick_Configure(void)
+{
+	/*1MilliSec interrupt */
+	SysTick_Config(SystemCoreClock/1000);
+	
+}
+#endif
 
 #ifdef DEEP_SLEEP_MODE_ENABLE
 /**********************************************************************
@@ -359,7 +397,11 @@ void GPIO_Configure(void) //KMS241126_3 : Added GPIO configuration function.
  * @return	None
  **********************************************************************/
 void mainloop(void)
-{	
+{
+#ifdef ESTEC_A2B_STACK_PORTING
+	a2b_UInt32 nResult = 0;
+#endif
+
 	/*Configure menu prinf*/
 	DEBUG_MenuPrint();
 
@@ -369,7 +411,7 @@ void mainloop(void)
 #endif
 
 #if defined(I2C_0_ENABLE) || defined(I2C_1_ENABLE)
-	I2C_Configure(I2C_SPEED_400K, MASTER); //Define I2C Speed and Master/Slave
+	I2C_Configure(I2C_SPEED_400K, MASTER); //Define I2C Speed and Master/Slave. //KMS241206_1 : A2B I2C speed is fixed 400K in A2B and MCU both sides.
 #endif
 #ifdef TIMER20_ENABLE
 	TIMER20_Configure();
@@ -379,6 +421,10 @@ void mainloop(void)
 #endif	
 #ifdef GPIO_ENABLE
 	EXTI_PortA_Configure();
+#endif
+#ifdef ESTEC_A2B_STACK_PORTING
+	/*Configure SysTick peripheral*/
+	SysTick_Configure();
 #endif
 
 	/* Enable IRQ Interrupts */
@@ -403,6 +449,25 @@ void mainloop(void)
 		B_Need_ACC_On = TRUE;
 	}
 #endif
+#ifdef ESTEC_A2B_STACK_PORTING
+	/* system/platform specific initialization */
+	//nResult = adi_a2b_SystemInit();
+	
+	if(nResult != 0)
+	{
+		//assert(nResult == 0);
+	}
+
+	/* A2B Network Setup. Performs discovery and configuration of A2B nodes and its peripherals */
+	nResult = a2b_setup(&gApp_Info);
+	
+	if (nResult)
+	{
+		/* failed to setup A2B network */
+		//assert(nResult == 0);
+	}
+#endif
+		delay_ms(1000);
 
 #ifdef _DEBUG_MSG
 	cputs("\n\rInit Done !!!");
@@ -423,6 +488,23 @@ void mainloop(void)
 				PWR_DeepSleepRun();
 			}
 		}
+#endif
+#ifdef ESTEC_A2B_STACK_PORTING
+		/* Monitor a2b network for faults and initiate re-discovery if enabled */
+		nResult = a2b_fault_monitor(&gApp_Info);
+
+		/*-----------------------------------------------------------*/
+		/* Add your other continuous monitoring application code here */
+		/*-----------------------------------------------------------*/
+
+		/* condition to exit the program */
+		if (nResult != 0)
+		{
+			
+		}
+
+		/* tick keeps all process rolling.. so keep ticking */
+		a2b_stackTick(gApp_Info.ctx);
 #endif
 	}
 }

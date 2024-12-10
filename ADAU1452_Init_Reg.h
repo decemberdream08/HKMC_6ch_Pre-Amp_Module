@@ -19,7 +19,7 @@
 #ifndef __ADAU1452_INIT_REG_H__
 #define __ADAU1452_INIT_REG_H__
 
-#define ADI_REG_TYPE        uint8_t
+#define ADI_REG_TYPE       const uint8_t //KMS241202_1
 
 ADI_REG_TYPE MODE_1_0[2] = {0x00, 0x00};
 ADI_REG_TYPE MODE_1_1[2] = {0x00, 0x01};

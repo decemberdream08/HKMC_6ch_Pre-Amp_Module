@@ -54,6 +54,8 @@ extern "C"
 #define DEEP_SLEEP_LOWEST_POWER_CONSUMPTION	(1) //KMS241129_2 : Implemented lowest power consumption under MCU deep-sleep mode.
 #endif
 
+#define ESTEC_A2B_STACK_PORTING		(1) //KMS241129_4 : To merge A2B Stack, we use "ESTEC_A2B_STACK_PORTING" define.
+
 //Pheriperal Devices
 #define ADAU1452_ENABLE			(1) //KMS241126_1 : Added ADAU1452(DSP) code
 #define ADAU1761_ENABLE			(1) //KMS241125_2 : Added ADAU1761(ADC/DAC) code
@@ -69,7 +71,7 @@ extern "C"
 //Debug Messages
 #ifdef _DEBUG_MSG
 #ifdef I2C_0_ENABLE
-//#define _I2C_DEBUG_MSG		(1) //Debug message for I2C especially TAS3251
+//#define _I2C_DEBUG_MSG		(1) //Debug message for I2C especially ADAU1452
 #endif
 #ifdef GPIO_ENABLE
 //#define GPIO_DEBUG_MSG			(1)  //Debug message for GPIO
@@ -82,6 +84,15 @@ extern "C"
 #endif
 #ifdef DEEP_SLEEP_MODE_ENABLE
 //#define DEEP_SLEEP_MODE_DEBUG_MSG		(1) // Debug message for DEEP SLEEP MODE
+#endif
+#ifdef ADAU1452_ENABLE
+//#define ADAU1452_DEBUG_ENABLE	(1) //Debug message for ADAU1452
+#endif
+#ifdef ADAU1761_ENABLE
+//#define ADAU1761_DEBUG_ENABLE	(1) //Debug message for ADAU1761
+#endif
+#ifdef ESTEC_A2B_STACK_PORTING
+//#define ESTEC_A2B_STACK_PORTING_DEBUG_ENABLE		(1) //Debug message for A2B STack Porting
 #endif
 #endif //_DEBUG_MSG
 
@@ -103,6 +114,9 @@ extern void GPIOAB_IRQHandler_IT(void); //KMS24112_6 : External Interrupt Settin
 #endif
 #ifdef DEEP_SLEEP_MODE_ENABLE
 extern Bool B_Deep_Sleep;
+#endif
+#ifdef ESTEC_A2B_STACK_PORTING
+extern uint32_t MilliSec;
 #endif
 
 #ifdef __cplusplus

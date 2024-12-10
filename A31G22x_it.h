@@ -35,6 +35,9 @@ extern void TIMER20_IRQHandler_Interrupt(void);
 #ifdef TIMER21_ENABLE
 extern void TIMER21_IRQHandler_Interrupt(void);
 #endif //TIMER21_ENABLE
+#ifdef ESTEC_A2B_STACK_PORTING
+extern void SysTick_Handler_IT(void);
+#endif //DEEP_SLEEP_MODE_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
