@@ -27,6 +27,8 @@
 #include "a2b\stack.h"
 #include "a2b\stackversion.h"
 
+
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*======================= D E F I N E S ===========================*/
 
 /*======================= L O C A L  P R O T O T Y P E S  =========*/
@@ -155,3 +157,4 @@ a2b_stackGetBuild
 
 } /* a2b_stackGetBuild */
 
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI

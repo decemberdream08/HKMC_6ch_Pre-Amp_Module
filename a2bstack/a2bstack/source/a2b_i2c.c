@@ -42,6 +42,8 @@
 #include "i2c_priv.h"
 #include "stackctx.h"
 #include "utilmacros.h"
+
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*======================= D E F I N E S ===========================*/
 
 #define A2B_I2C_TEMP_BUF_SIZE   (64)
@@ -2042,4 +2044,5 @@ a2b_i2cGenericWriteRead
 
 } /* a2b_i2cGenericWrite */
 
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
 

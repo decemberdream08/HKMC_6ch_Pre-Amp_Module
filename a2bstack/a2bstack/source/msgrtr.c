@@ -46,6 +46,7 @@
 #include "a2b\util.h"
 #include "jobexec.h"
 
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*======================= D E F I N E S ===========================*/
 
 /*======================= L O C A L  P R O T O T Y P E S  =========*/
@@ -999,3 +1000,4 @@ a2b_msgRtrGetExecutingMsg
 
 } /* a2b_msgExecUpdate */
 
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI

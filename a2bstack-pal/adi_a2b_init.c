@@ -42,6 +42,7 @@ and its licensors.
 //#include <services\gpio\adi_gpio.h>
 #endif
 
+#ifdef A2B_STACK_CODE_FROM_ADI
 #if A2B_PRINT_FOR_DEBUG
 #include <stdio.h>
 #endif
@@ -124,4 +125,6 @@ a2b_HResult adi_a2b_SystemInit(void)
 ** EOF: $URL$
 **
 */
+
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
 

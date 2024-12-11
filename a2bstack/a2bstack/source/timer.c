@@ -28,6 +28,7 @@
 #include "a2b\seqchart.h"
 #include "utilmacros.h"
 
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*======================= D E F I N E S ===========================*/
 
 /** Flag used to indicate whether or not a timer is in use (allocated) */
@@ -934,3 +935,5 @@ a2b_ActiveDelay
 		nCurrTime = ctx->stk->pal.timerGetSysTime();
 	}
 }
+
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI

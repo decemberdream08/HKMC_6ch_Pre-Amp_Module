@@ -48,6 +48,7 @@
 #include "discovery.h"
 #include "periphutil.h"
 
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*======================= L O C A L  P R O T O T Y P E S  =========*/
 static void a2b_pwrDiagFreeSlavePlugins(a2b_HResult     result,
     a2b_Handle userData);
@@ -1158,3 +1159,5 @@ a2b_pwrDiagIsActive
 /**
  @}
 */
+
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI

@@ -54,14 +54,15 @@ void I2C0_IRQHandler_MasterInterrupt(void);
 void I2C1_IRQHandler_MasterInterrupt(void);
 void I2C2_SPI20_IRQHandler_MasterInterrupt(void);
 
-void I2C0_Interrupt_Write_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uint8_t uSubAddr_8bit, uint8_t *uData, uint8_t uDataSize);
-void I2C0_Interrupt_Read_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uint8_t uSubAddr_8bit, uint8_t *uData, uint8_t uDataSize);
+//KMS241211_2 : To share I2C function for I2C_0 & I2C_1, it's changed I2C related functions as the following.
+void I2C_Interrupt_Write_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uint8_t uSubAddr_8bit, uint8_t *uData, uint8_t uDataSize);
+void I2C_Interrupt_Read_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uint8_t uSubAddr_8bit, uint8_t *uData, uint8_t uDataSize);
 
-void I2C1_Interrupt_Write_Data_16bit_SubAdd(uint8_t uDeviceId, uint16_t uSubAddr_16bit, uint8_t *uData, uint16_t uDataSize);
-void I2C1_Interrupt_Read_Data_16bit_SubAdd(uint8_t uDeviceId, uint16_t uSubAddr_16bit, uint8_t *uData, uint16_t uDataSize);
+void I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uint16_t uSubAddr_16bit, uint8_t *uData, uint16_t uDataSize);
+void I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uint16_t uSubAddr_16bit, uint8_t *uData, uint16_t uDataSize);
 
-void I2C0_Interrupt_Write_Data_A2B_8bit_Bus(uint8_t uDeviceId, uint8_t *uData, uint16_t uDataSize); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
-void I2C0_Interrupt_Read_Data_A2B_8bit_Bus(uint8_t uDeviceId, uint8_t *uWData, uint16_t uWDataSize, uint8_t *uRData, uint16_t uRDataSize); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
+void I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, uint8_t *uData, uint16_t uDataSize); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
+void I2C_Interrupt_Read_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, uint8_t *uWData, uint16_t uWDataSize, uint8_t *uRData, uint16_t uRDataSize); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
 
 //KMS241120_1 : Add new function and new defines
 void I2C_Configure(I2C_SPEED_STEP speed, I2Cn_Type mode); //Define I2C Speed and Master/Slave

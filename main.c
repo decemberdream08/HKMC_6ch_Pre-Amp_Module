@@ -375,17 +375,19 @@ void GPIO_Configure(void) //KMS241126_3 : Added GPIO configuration function.
 
 #ifdef MCU_EVK_I2C_TEST //Using ESMT82584F
 	uData[0] = 0x12;
-	I2C0_Interrupt_Write_Data_8bit_SubAdd(I2C_0, 0x31, 0x1a, &uData[0],1);
+	I2C_Interrupt_Write_Data_8bit_SubAdd(I2C_0, 0x31, 0x1a, &uData[0],1);
 	uData[0] = 0x32;
-	I2C0_Interrupt_Write_Data_8bit_SubAdd(I2C_0, 0x31, 0x1a, &uData[0],1);
+	I2C_Interrupt_Write_Data_8bit_SubAdd(I2C_0, 0x31, 0x1a, &uData[0],1);
 	uData[0] = 0x2e;
-	I2C0_Interrupt_Write_Data_8bit_SubAdd(I2C_0, 0x31, 0x03, &uData[0],1);
+	I2C_Interrupt_Write_Data_8bit_SubAdd(I2C_0, 0x31, 0x03, &uData[0],1);
 	uData[0]=0;
-	I2C0_Interrupt_Read_Data_8bit_SubAdd(I2C_0, 0x31, 0x1a, &uData[0], 1);
+	I2C_Interrupt_Read_Data_8bit_SubAdd(I2C_0, 0x31, 0x1a, &uData[0], 1);
 	cprintf("\n\r read[0x03] = 0x%02x",uData[0]);
 
+#ifdef MCU_EVK_FUNCTION_TEST
 #ifdef ADAU1452_ENABLE
-	I2C1_Interrupt_Read_Data_16bit_SubAdd(0x38, 0xF218, uData, 2);
+	I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_1, 0x38, 0xF218, uData, 2);
+#endif
 #endif
 #endif //MCU_EVK_I2C_TEST
 }

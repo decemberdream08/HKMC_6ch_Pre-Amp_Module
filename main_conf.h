@@ -55,14 +55,16 @@ extern "C"
 #endif
 
 #define ESTEC_A2B_STACK_PORTING		(1) //KMS241129_4 : To merge A2B Stack, we use "ESTEC_A2B_STACK_PORTING" define.
+#ifdef ESTEC_A2B_STACK_PORTING
+#define A2B_STACK_CODE_FROM_ADI			(1) //KMS241211_1 : To make A2B Stack code as module code. So we can remove A2B Stack without disabling "A2B_STACK_CODE_FROM_ADI".
+#endif
 
 //Pheriperal Devices
-#define ADAU1452_ENABLE			(1) //KMS241126_1 : Added ADAU1452(DSP) code
-#define ADAU1761_ENABLE			(1) //KMS241125_2 : Added ADAU1761(ADC/DAC) code
+#define ADAU1452_ENABLE				(1) //KMS241126_1 : Added ADAU1452(DSP) code //I2C_0
+#define ADAU1761_ENABLE				(1) //KMS241125_2 : Added ADAU1761(ADC/DAC) code //I2C_1
 
 //Tests
-#define MCU_EVK_FUNCTION_TEST			(1) //KMS241127_1 : Defined test codes for MCU EVK board
-
+#define MCU_EVK_FUNCTION_TEST			(1) //KMS241127_1 : Defined test codes for MCU EVK board and ADI A2B Master EVK(using I2C1 for DSP/DAC and A2B Transceiver) 
 #ifdef MCU_EVK_FUNCTION_TEST
 #define MCU_EVK_I2C_TEST				(1) //I2C0, I2C1
 #define MCU_EVK_GPIO_TEST				(1) //GPIO, External Interrupt

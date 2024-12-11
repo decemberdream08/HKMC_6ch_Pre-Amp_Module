@@ -24,7 +24,7 @@
 #include "stack_priv.h"
 #include "stackctx.h"
 
-
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*======================= D E F I N E S ===========================*/
 
 
@@ -89,3 +89,5 @@ a2b_audioConfig
     return status;
 
 } /* a2b_audioConfig */
+
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI

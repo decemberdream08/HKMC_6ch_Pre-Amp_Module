@@ -44,6 +44,9 @@ and its licensors.
 #include "bdd_pb2.pb.h"
 #include "a2b\pluginapi.h"
 #include "plugin_priv.h"
+
+
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*============= D E F I N E S =============*/
 
 /*============= D A T A =============*/
@@ -449,3 +452,5 @@ void adi_a2b_BertStop(a2b_Plugin*  pPlugin)
 ** EOF: $URL$
 **
 */
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
+

@@ -4,7 +4,9 @@
  */
 
 #include "pb_common.h"
+#include "main_conf.h" //KMS241211_1
 
+#ifdef A2B_STACK_CODE_FROM_ADI
 bool pb_field_iter_begin(pb_field_iter_t *iter, const pb_field_t *fields, void *dest_struct)
 {
     iter->start = fields;
@@ -98,4 +100,5 @@ bool pb_field_iter_find(pb_field_iter_t *iter, uint32_t tag)
     return false;
 }
 
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
 

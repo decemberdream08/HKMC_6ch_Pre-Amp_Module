@@ -37,6 +37,7 @@
 #include "memmgr.h"
 #include "interrupt_priv.h"
 
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*======================= D E F I N E S ===========================*/
 #define A2B_INITIALIZED_NONE        (a2b_UInt32)(0u)
 #define A2B_INITIALIZED_LOG         ((a2b_UInt32)1u << (a2b_UInt32)0u)
@@ -1159,3 +1160,6 @@ a2b_stackPalGetBuild
         pal->getBuild(buildNum, buildDate, buildOwner, buildSrcRev, buildHost);
     }
 } /* a2b_stackPalGetBuild */
+
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
+

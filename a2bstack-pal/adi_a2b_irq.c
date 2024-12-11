@@ -33,6 +33,7 @@ and its licensors.
 /*! \addtogroup GPIO
  *  @{
  */
+#ifdef A2B_STACK_CODE_FROM_ADI
 #ifdef ENABLE_INTERRUPT_PROCESS
 
 /*============= I N C L U D E S =============*/
@@ -145,5 +146,5 @@ static void adi_a2b_PinInterruptHandler(ADI_GPIO_PORT ePinInt, a2b_UInt32 nPins,
 **
 */
 #endif //ENABLE_INTERRUPT_PROCESS
-
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
 

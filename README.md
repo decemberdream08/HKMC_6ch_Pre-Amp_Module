@@ -46,3 +46,7 @@
   - To commnunicate with A2B Bus through I2C. //KMS241210_1
   - SCL_TIMEOUT define makes A2B i2c communication error when master try to init peripheral of slave node. //KMS241210_2
   - I2C_MANUAL_BUS_CONTROL define is not used. //KMS241210_3
+
+## 2024-12-11
+  - To make A2B Stack code as module code. So we can remove A2B Stack without disabling "A2B_STACK_CODE_FROM_ADI". //KMS241211_1
+  - To share I2C function for I2C_0 & I2C_1, it's changed I2C related functions as the following. //KMS241211_2

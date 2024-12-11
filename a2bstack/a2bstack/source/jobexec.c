@@ -29,6 +29,7 @@
 #include "stack_priv.h"
 #include "utilmacros.h"
 
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*======================= D E F I N E S ===========================*/
 
 #define A2B_MAX_SCHED_MASK_VALUE    (0x1FFu)
@@ -569,3 +570,5 @@ a2b_jobExecUpdate
         (void)a2b_jobExecUnrefQueue(q);
     }
 } /* a2b_jobExecUpdate */
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
+

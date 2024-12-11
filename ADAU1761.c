@@ -18,7 +18,7 @@
 #define DEVICE_ADDR_		(0x39)
 
 #define SIGMA_WRITE_REGISTER_BLOCK(deviceId, subAddr, dataSize, data) \
-    I2C1_Interrupt_Write_Data_16bit_SubAdd(deviceId, subAddr, data, dataSize)
+    I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_1, deviceId, subAddr, data, dataSize) //KMS241211_2
 
 //KMS241202_2 : To reduce RAM size, we need to modify original ADAU1761_init_Reg.h and ADAU1761.c like below.
 //1. In ADAU1761_init_Reg.h, we have to change define like the following 

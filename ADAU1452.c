@@ -27,8 +27,13 @@
 
 #define DEVICE_ADDR_ADAU1452		(0x38)
 
+#ifdef MCU_EVK_FUNCTION_TEST //KMS241211_2
 #define SIGMA_WRITE_REGISTER_BLOCK(deviceId, subAddr, dataSize, data) \
-    I2C1_Interrupt_Write_Data_16bit_SubAdd(deviceId, subAddr, data, dataSize)
+    I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_1, deviceId, subAddr, data, dataSize)
+#else
+#define SIGMA_WRITE_REGISTER_BLOCK(deviceId, subAddr, dataSize, data) \
+    I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_0, deviceId, subAddr, data, dataSize)
+#endif
 
 //KMS241202_1 : To reduce RAM size, we need to modify original ADAU1452_init_Reg.h and ADAU1452.c like below.
 //1. In ADAU1452_init_Reg.h, we have to change define like the following 

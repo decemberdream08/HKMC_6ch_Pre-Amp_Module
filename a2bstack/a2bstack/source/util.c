@@ -68,6 +68,7 @@
 #include "a2b\util.h"
 #include "a2b\stringbuffer.h"
 
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*======================= D E F I N E S ===========================*/
 
 /** 
@@ -1249,3 +1250,5 @@ a2b_vsnprintf
 
     return nWritten;
 } /* a2b_vsnprintf */
+
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI

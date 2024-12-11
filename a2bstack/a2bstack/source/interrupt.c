@@ -34,7 +34,7 @@
 #include "interrupt_priv.h"
 #include "utilmacros.h"
 
-
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*======================= D E F I N E S ===========================*/
 
 
@@ -613,3 +613,4 @@ a2b_intrDestroy
 
 } /* a2b_intrDestroy */
 
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI

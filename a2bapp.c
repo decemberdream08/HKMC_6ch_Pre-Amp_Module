@@ -53,6 +53,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*============= D E F I N E S =============*/
 
 #if defined(A2B_BCF_FROM_SOC_EEPROM) && !defined(A2B_FEATURE_EEPROM_OR_FILE_PROCESSING)
@@ -2054,4 +2055,5 @@ static void a2bapp_initTdmSettings(A2B_ECB* ecb, const bdd_Network* bdd)
 ** EOF: $URL$
 **
 */
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
 

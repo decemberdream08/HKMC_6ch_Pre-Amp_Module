@@ -3,6 +3,7 @@
 
 #include "bdd_pb2.pb.h"
 
+#ifdef A2B_STACK_CODE_FROM_ADI
 #if PB_PROTO_HEADER_VERSION != 30
 #error Regenerate this file with the current version of nanopb generator.
 #endif
@@ -212,4 +213,5 @@ PB_STATIC_ASSERT((pb_membersize(bdd_NodeDescriptor, oCustomNodeIdSettings) < 655
 PB_STATIC_ASSERT((pb_membersize(bdd_NodeDescriptor, oCustomNodeIdSettings) < 256 && pb_membersize(bdd_Node, ctrlRegs) < 256 && pb_membersize(bdd_Node, intRegs) < 256 && pb_membersize(bdd_Node, tuningRegs) < 256 && pb_membersize(bdd_Node, i2cI2sRegs) < 256 && pb_membersize(bdd_Node, pinIoRegs) < 256 && pb_membersize(bdd_Node, nodeDescr) < 256 && pb_membersize(bdd_Node, slotEnh) < 256 && pb_membersize(bdd_Node, gpioDist) < 256 && pb_membersize(bdd_Node, mbox) < 256 && pb_membersize(bdd_Node, nodeSetting) < 256 && pb_membersize(bdd_Network, metaData) < 256 && pb_membersize(bdd_Network, policy) < 256 && pb_membersize(bdd_Network, nodes[0]) < 256), YOU_MUST_DEFINE_PB_FIELD_16BIT_FOR_MESSAGES_bdd_MetaData_bdd_CustomNodeIdSettings_bdd_NodeDescriptor_bdd_CtrlRegs_bdd_IntRegs_bdd_TuningRegs_bdd_I2cI2sRegs_bdd_PinIoRegs_bdd_DataSlotEnhancementRegs_bdd_GpioDRegs_bdd_MailboxRegs_bdd_NodeSettings_bdd_Node_bdd_NetworkPolicy_bdd_Network)
 #endif
 
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
 

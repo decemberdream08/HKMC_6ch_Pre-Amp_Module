@@ -23,6 +23,7 @@
 #include "a2b\error.h"
 #include "a2b\util.h"
 
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*======================= D E F I N E S ===========================*/
 
 /*======================= L O C A L  P R O T O T Y P E S  =========*/
@@ -135,4 +136,6 @@ a2b_systemShutdown
     return status;
 
 } /* a2b_systemShutdown */
+
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
 

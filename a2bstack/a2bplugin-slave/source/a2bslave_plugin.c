@@ -47,6 +47,8 @@
 #include "timer_priv.h"
 #endif	/* _TESSY_INCLUDES_ */
 
+
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*======================= D E F I N E S ===========================*/
 
 /* The amount of time (msec) used to simulate the time it would
@@ -757,3 +759,6 @@ A2B_SLAVE_PLUGIN_INIT
 
     return status;
 } /* A2B_PLUGIN_INIT */
+
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
+

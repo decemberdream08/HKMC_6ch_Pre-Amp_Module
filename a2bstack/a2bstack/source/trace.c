@@ -27,7 +27,7 @@
 #include "a2b\util.h"
 #include "utilmacros.h"
 
-
+#ifdef A2B_STACK_CODE_FROM_ADI
 #ifdef A2B_FEATURE_TRACE
 
 /*======================= D E F I N E S ===========================*/
@@ -1089,3 +1089,5 @@ a2b_trace8
 } /* a2b_trace8 */
 
 #endif /* A2B_FEATURE_TRACE */
+
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI

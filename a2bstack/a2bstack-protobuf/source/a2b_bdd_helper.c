@@ -30,6 +30,8 @@
 #ifdef A2B_BCF_FROM_FILE_IO
 #include "adi_a2b_externs.h"
 #endif
+
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*======================= D E F I N E S ===========================*/
 /*! Configure only non default values */
 #define A2B_CONFIGURE_ONLY_NON_DEFAULT	(1)
@@ -2660,3 +2662,6 @@ a2b_HResult a2b_get_bddFrmE2promOrFileIO(A2B_ECB* ecb, bdd_Network *bdd_Graph, a
 /**
  @}
 */
+
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
+

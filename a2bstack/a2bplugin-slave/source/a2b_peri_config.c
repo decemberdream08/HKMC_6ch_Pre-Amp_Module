@@ -57,6 +57,9 @@ and its licensors.
 #include "a2b\seqchart.h"
 #include "msg_priv.h"
 #include "a2b\msgrtr.h"
+
+
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*============= D E F I N E S =============*/
 
 
@@ -305,7 +308,7 @@ void adi_a2b_Concat_Addr_Data(a2b_UInt8 pDstBuf[] ,a2b_UInt32 nAddrwidth, a2b_UI
 
 
 
-
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
 
 
 

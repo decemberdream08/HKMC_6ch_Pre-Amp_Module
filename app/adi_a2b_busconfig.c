@@ -27,6 +27,7 @@ and its licensors.
 #include "adi_a2b_graphdata.h"
 #include "adi_a2b_busconfig.h"
 
+#ifdef A2B_STACK_CODE_FROM_ADI
 static ADI_A2B_COMPR_MASTER_SLAVE_CONFIG sChainConfig0;
 static a2b_Byte  gA2bNetworkChain0[];
 static ADI_A2B_NODE_PERICONFIG_DATA sChain0_Slave0PeriConfig;
@@ -1073,3 +1074,5 @@ static	ADI_A2B_PERI_CONFIG_UNIT gaPeriCfg_0_39_Unit[40] =
 	{A2B_WRITE_OP,	0x2u,	0x4036u,	0x1u,	0x1u,	&gaPeriCfg_0_39_38_Data[0],	0x0u },
 	{A2B_WRITE_OP,	0x2u,	0x4036u,	0x1u,	0x1u,	&gaPeriCfg_0_39_39_Data[0],	0x0u }
 };
+
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI

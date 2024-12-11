@@ -58,6 +58,8 @@
 #include "stack_priv.h"
 #endif	/* _TESSY_INCLUDES_ */
 
+
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*======================= D E F I N E S ===========================*/
 
 #define A2B_MASTER_NODEBDDIDX   (0u)
@@ -6104,3 +6106,5 @@ static a2b_Bool a2b_isCrossTalkFixApply(a2b_UInt8 vendorId, a2b_UInt8 productId)
 /**
  @}
 */
+
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI

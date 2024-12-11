@@ -48,6 +48,7 @@
 #include "timer_priv.h"
 #endif	/* _TESSY_INCLUDES_ */
 
+#ifdef A2B_STACK_CODE_FROM_ADI
 #ifdef A2B_FEATURE_EEPROM_OR_FILE_PROCESSING
 
 /*======================= D E F I N E S ===========================*/
@@ -1225,7 +1226,7 @@ a2b_periphCfgProcessing
 
 
 
-
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
 
 
 

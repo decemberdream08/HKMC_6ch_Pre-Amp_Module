@@ -16,10 +16,14 @@
 #include "pb.h"
 #include "pb_decode.h"
 #include "pb_common.h"
+#include "main_conf.h" //KMS241211_1
+
 #include <string.h>
 /**************************************
  * Declarations internal to this file *
  **************************************/
+
+#ifdef A2B_STACK_CODE_FROM_ADI
 
 typedef bool (*pb_decoder_t)(pb_istream_t *stream, const pb_field_t *field, void *dest) checkreturn;
 
@@ -1321,3 +1325,5 @@ static bool checkreturn pb_dec_submessage(pb_istream_t *stream, const pb_field_t
     pb_close_string_substream(stream, &substream);
     return status;
 }
+
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI

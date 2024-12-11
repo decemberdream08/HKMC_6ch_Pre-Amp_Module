@@ -27,6 +27,7 @@
 #include "a2b\util.h"
 #include "stackctx.h"
 
+#ifdef A2B_STACK_CODE_FROM_ADI
 #ifdef A2B_FEATURE_SEQ_CHART
 
 /*======================= D E F I N E S ===========================*/
@@ -1679,3 +1680,5 @@ a2b_seqChart8
 } /* a2b_seqChart8 */
 
 #endif /* A2B_FEATURE_SEQ_CHART */
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
+

@@ -20,6 +20,7 @@
 /*======================= I N C L U D E S =========================*/
 #include "a2b\stringbuffer.h"
 
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*======================= D E F I N E S ===========================*/
 
 /*======================= L O C A L  P R O T O T Y P E S  =========*/
@@ -247,3 +248,6 @@ a2b_stringBufferAppendWithFill
     return nWritten;
 
 } /* a2b_stringBufferAppendWithFill */
+
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
+

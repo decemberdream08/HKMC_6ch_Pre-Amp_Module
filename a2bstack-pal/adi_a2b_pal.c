@@ -67,6 +67,7 @@ and its licensors.
 //#include <cdefbf527.h>
 #endif
 
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*============= D E F I N E S =============*/
 
 /*============= D A T A =============*/
@@ -248,8 +249,12 @@ a2b_HResult a2b_pal_I2cWriteFunc(a2b_Handle hnd,
         const a2b_Byte* wBuf)
 {
 	//DevicdID : ecb->baseEcb.i2cMasterAddr = A2B_CONF_DEFAULT_MASTER_NODE_I2C_ADDR;
-	I2C0_Interrupt_Write_Data_A2B_8bit_Bus((uint8_t)addr,(uint8_t *)wBuf, nWrite); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
-	
+#ifdef MCU_EVK_FUNCTION_TEST //KMS241211_2
+	I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_1, (uint8_t)addr,(uint8_t *)wBuf, nWrite); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
+#else
+	I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_0, (uint8_t)addr,(uint8_t *)wBuf, nWrite); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
+#endif
+
     return 0;
 }
 
@@ -278,7 +283,11 @@ a2b_HResult a2b_pal_I2cWriteReadFunc(a2b_Handle hnd,
         a2b_Byte* rBuf)
 {
 	//DevicdID : ecb->baseEcb.i2cMasterAddr = A2B_CONF_DEFAULT_MASTER_NODE_I2C_ADDR;
-	I2C0_Interrupt_Read_Data_A2B_8bit_Bus((uint8_t)addr, (uint8_t *)wBuf, nWrite, (uint8_t *)rBuf, nRead); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
+#ifdef MCU_EVK_FUNCTION_TEST //KMS241211_2	
+	I2C_Interrupt_Read_Data_A2B_8bit_Bus(I2C_1, (uint8_t)addr, (uint8_t *)wBuf, nWrite, (uint8_t *)rBuf, nRead); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
+#else
+	I2C_Interrupt_Read_Data_A2B_8bit_Bus(I2C_0, (uint8_t)addr, (uint8_t *)wBuf, nWrite, (uint8_t *)rBuf, nRead); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
+#endif
 
     return 0;
 }
@@ -1464,5 +1473,5 @@ a2b_HResult a2b_pal_memMgrShutdown(A2B_ECB*    ecb)
 ** EOF: $URL$
 **
 */
-
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
 

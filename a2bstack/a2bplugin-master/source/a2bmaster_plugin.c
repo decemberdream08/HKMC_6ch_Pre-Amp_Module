@@ -37,6 +37,8 @@
 #include "verinfo.h"
 #include "a2b\stackctxmailbox.h"
 
+
+#ifdef A2B_STACK_CODE_FROM_ADI
 /*======================= D E F I N E S ===========================*/
 
 /*======================= L O C A L  P R O T O T Y P E S  =========*/
@@ -1497,3 +1499,6 @@ static void a2b_pluginCustAuthInit(struct a2b_StackContext* ctx, a2b_Plugin* plu
 		plugin->customAuth[nIdx-1U].nRetryCnt = plugin->bdd->nodes[nIdx].nodeDescr.oCustomNodeIdSettings.nRetryCnt;
 	}
 }
+
+#endif //#ifdef A2B_STACK_CODE_FROM_ADI
+
