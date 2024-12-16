@@ -63,8 +63,13 @@ extern "C"
 #define ADAU1452_ENABLE				(1) //KMS241126_1 : Added ADAU1452(DSP) code //I2C_0
 #define ADAU1761_ENABLE				(1) //KMS241125_2 : Added ADAU1761(ADC/DAC) code //I2C_1
 
+//Features
+#ifdef GPIO_ENABLE
+#define INTPUT_SOURCE_SELECTION_UPON_POWER_ON			(1) //KMS241213_3 : The input souce selection is only working one time when power is turned on.
+#endif
+
 //Tests
-#define MCU_EVK_FUNCTION_TEST			(1) //KMS241127_1 : Defined test codes for MCU EVK board and ADI A2B Master EVK(using I2C1 for DSP/DAC and A2B Transceiver) 
+//#define MCU_EVK_FUNCTION_TEST			(1) //KMS241127_1 : Defined test codes for MCU EVK board and ADI A2B Master EVK(using I2C1 for DSP/DAC and A2B Transceiver) 
 #ifdef MCU_EVK_FUNCTION_TEST
 #define MCU_EVK_I2C_TEST				(1) //I2C0, I2C1
 #define MCU_EVK_GPIO_TEST				(1) //GPIO, External Interrupt

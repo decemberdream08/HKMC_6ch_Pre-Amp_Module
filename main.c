@@ -59,6 +59,9 @@ void DEBUG_MenuPrint(void);
 void MCU_EVK_Function_Test(void);
 #endif
 #ifdef GPIO_ENABLE
+Bool Input_Source_State(void); //KMS241213_2 : Added new function to check current input source whether A2B or Aux
+void Input_Source_Control(Bool B_A2B_Mode); //KMS241213_2 : To inform current mode(A2B or Aux) to DSP using PA3
+
 Bool ACC_On_State(void); //KMS241129_1 : ACC ON/OFF status check functtion
 void EXTI_PortA_Configure(void); //KMS24112_6 : External Interrupt Setting for PA0
 void GPIO_Configure(void);
@@ -213,6 +216,48 @@ void PWR_DeepSleepRun(void)
 
 #ifdef GPIO_ENABLE
 /**********************************************************************
+ * @brief		Input_Source_State
+ * @param[in]	None
+ * @return 		TRUE : A2B Mode
+ *				FALSE : Aux Mode
+ **********************************************************************/
+Bool Input_Source_State(void) //KMS241213_2 : Added new function to check current input source whether A2B or Aux //PA4
+{
+	Bool B_A2B_On;
+	
+	if(HAL_GPIO_ReadPin(PA) & _BIT(4)) //PA4
+		B_A2B_On = TRUE; //A2B Mode
+	else
+		B_A2B_On = FALSE; //Aux Mode
+
+	return B_A2B_On;
+}
+
+/**********************************************************************
+ * @brief		Input_Source_Control
+ * @param[in]	None
+ * @return 		TRUE : ACC-ON
+ *				FALSE : ACC-OFF
+ **********************************************************************/
+void Input_Source_Control(Bool B_A2B_Mode) //KMS241213_2 : To inform current mode(A2B or Aux) to DSP using PA3
+{
+	if(B_A2B_Mode == TRUE)
+	{
+#ifdef GPIO_DEBUG_MSG
+		cputs("\n\rSet PA3 !!!");
+#endif
+		HAL_GPIO_SetPin(PA, _BIT(3));
+	}
+	else
+	{
+#ifdef GPIO_DEBUG_MSG
+		cputs("\n\rClear PA3 !!!");
+#endif
+		HAL_GPIO_ClearPin(PA, _BIT(3));
+	}
+}
+
+/**********************************************************************
  * @brief		ACC_On_State
  * @param[in]	None
  * @return 		TRUE : ACC-ON
@@ -307,6 +352,29 @@ void GPIOAB_IRQHandler_IT(void) //KMS24112_6 : External Interrupt Setting for PA
 #endif
 		}
 	}
+
+#ifndef INTPUT_SOURCE_SELECTION_UPON_POWER_ON //KMS241213_3	
+	if (status & 0x00000300) //KMS241213_2 : External Interrupt is only PA4. xx11 0000 0000
+	{
+		clear_bit = status & 0x00000300;
+		HAL_GPIO_EXTI_ClearPin(PA, status&clear_bit);
+		
+		if(Input_Source_State() == TRUE) //PA4 - A2B Mode
+		{
+#ifdef GPIO_DEBUG_MSG
+			cputs("\n\rPA4 GPIO High - Input source A2B");
+#endif
+			Input_Source_Control(TRUE);
+		}
+		else //PA4 - Aux Mode
+		{
+#ifdef GPIO_DEBUG_MSG
+			cputs("\n\rPA4 GPIO Low - Input source Aux");
+#endif
+			Input_Source_Control(FALSE);
+		}
+	}
+#endif //INTPUT_SOURCE_SELECTION_UPON_POWER_ON
 }
 
 /**********************************************************************
@@ -320,7 +388,10 @@ void EXTI_PortA_Configure(void) //KMS24112_6 : External Interrupt Setting for PA
 	HAL_SCU_MiscClockConfig(4,PD0_TYPE,CLKSRC_LSI,100);
 
 	HAL_GPIO_EXTI_Config(PA, 0, PCU_INTERRUPT_MODE_EDGE, PCU_INTERRUPT_CTRL_EDGE_BOTH);
-	
+#ifndef INTPUT_SOURCE_SELECTION_UPON_POWER_ON
+	HAL_GPIO_EXTI_Config(PA, 4, PCU_INTERRUPT_MODE_EDGE, PCU_INTERRUPT_CTRL_EDGE_BOTH); //KMS241213_2
+#endif
+
 	NVIC_SetPriority(GPIOAB_IRQn, 3);	
 	NVIC_EnableIRQ(GPIOAB_IRQn);
 }
@@ -336,7 +407,7 @@ void GPIO_Configure(void) //KMS241126_3 : Added GPIO configuration function.
 	HAL_GPIO_ConfigOutput(PA, 0, PCU_MODE_INPUT);
 	HAL_GPIO_ConfigPullup(PA, 0, PCU_PUPD_PULL_UP);
 	HAL_GPIO_SetDebouncePin(PA, 0, ENABLE);
-	HAL_GPIO_ClearPin(PA, _BIT(0));	
+	HAL_GPIO_ClearPin(PA, _BIT(0));
 
 	//PA1/Pin45(ACC_OUT_MICOM) : Output : This pin is followed by PA0 state
 	HAL_GPIO_ConfigOutput(PA, 1, PCU_MODE_PUSH_PULL);
@@ -348,9 +419,14 @@ void GPIO_Configure(void) //KMS241126_3 : Added GPIO configuration function.
 	HAL_GPIO_ConfigPullup(PB, 2, PCU_PUPD_PULL_UP); //The schematic doesn't have any external pull-up.
 	HAL_GPIO_ClearPin(PB, _BIT(2));
 
-	//PA3/Pin47(INPUT_CNTRL_OUT) : Output : This pin is followed by PA4 below. - High : Input source A2B / Low : Input Source Aux	
+	//PA3/Pin47(INPUT_CNTRL_OUT) : Output : This pin is followed by PA4 below. - High : Input source A2B / Low : Input Source Aux
+#ifdef MCU_EVK_FUNCTION_TEST
+	HAL_GPIO_ConfigOutput(PA, 3, PCU_MODE_PUSH_PULL);
+	HAL_GPIO_ConfigPullup(PB, 3, PCU_PUPD_PULL_UP);
+#else //MCU_EVK_FUNCTION_TEST
 	HAL_GPIO_ConfigOutput(PA, 3, PCU_MODE_OPEN_DRAIN); //Open-Drain
 	HAL_GPIO_ConfigPullup(PB, 3, PCU_PUPD_DISABLE); //The schematic has external pull-up & pull-down.
+#endif
 	HAL_GPIO_ClearPin(PB, _BIT(3));
 
 	//PA4/Pin48(INPUT_CNTRL) : Input : Just pass input signal to PA3 and check input just one time. - High : Input source A2B / Low : Input Source Aux
@@ -442,7 +518,7 @@ void mainloop(void)
 	MCU_EVK_Function_Test();
 #endif
 #ifdef MCU_RESET_AFTER_WAKE_UP//KMS241129_1 : After MCU reset from wake-up, it need to set ACC_ON status in here. 
-//Becuase MCU interrupt pin has internal pull-up that's why MCU can't detect ACC_ON status on MCU reset.
+	//Becuase MCU interrupt pin has internal pull-up that's why MCU can't detect ACC_ON status on MCU reset.
 	if(ACC_On_State() == TRUE)
 	{
 #ifdef GPIO_DEBUG_MSG
@@ -451,6 +527,24 @@ void mainloop(void)
 		B_Need_ACC_On = TRUE;
 	}
 #endif
+#ifdef GPIO_ENABLE //KMS241213_2
+	//KMS241213_3 : Just check one time upon power on if "INTPUT_SOURCE_SELECTION_UPON_POWER_ON" is defined but it checks current status with intterrupt and upon Power On if "INTPUT_SOURCE_SELECTION_UPON_POWER_ON" is not defined
+	if(Input_Source_State() == TRUE)
+	{
+#ifdef GPIO_DEBUG_MSG
+		cputs("\n\rInput Source is A2B Mode upon Power On !!!");
+#endif
+		Input_Source_Control(TRUE);
+	}
+	else
+	{
+#ifdef GPIO_DEBUG_MSG
+		cputs("\n\rInput Source is Aux Mode upon Power On !!!");
+#endif
+		Input_Source_Control(FALSE);
+	}
+#endif //GPIO_ENABLE
+
 #ifdef ESTEC_A2B_STACK_PORTING
 	/* system/platform specific initialization */
 	//nResult = adi_a2b_SystemInit();
@@ -469,7 +563,6 @@ void mainloop(void)
 		//assert(nResult == 0);
 	}
 #endif
-		delay_ms(1000);
 
 #ifdef _DEBUG_MSG
 	cputs("\n\rInit Done !!!");
@@ -502,7 +595,9 @@ void mainloop(void)
 		/* condition to exit the program */
 		if (nResult != 0)
 		{
-			
+#ifdef _DEBUG_MSG
+			cprintf("\n\r A2B_Falut_monitor = 0x%02x",nResult);
+#endif
 		}
 
 		/* tick keeps all process rolling.. so keep ticking */

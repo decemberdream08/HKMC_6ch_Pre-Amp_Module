@@ -65,7 +65,7 @@
 /** Maximum number of A2B slave nodes attached to each master node, limiting to 10 */
 #ifndef A2B_CONF_MAX_NUM_SLAVE_NODES
 #ifdef ESTEC_A2B_STACK_PORTING
-#define A2B_CONF_MAX_NUM_SLAVE_NODES        (1u)
+#define A2B_CONF_MAX_NUM_SLAVE_NODES        (2u)
 #else //ESTECT_A2B_STACK_PORTING
 #define A2B_CONF_MAX_NUM_SLAVE_NODES        (10u)
 #endif //ESTECT_A2B_STACK_PORTING

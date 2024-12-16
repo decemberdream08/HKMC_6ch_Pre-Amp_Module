@@ -50,3 +50,9 @@
 ## 2024-12-11
   - To make A2B Stack code as module code. So we can remove A2B Stack without disabling "A2B_STACK_CODE_FROM_ADI". //KMS241211_1
   - To share I2C function for I2C_0 & I2C_1, it's changed I2C related functions as the following. //KMS241211_2
+
+## 2024-12-13
+  - To share ADAU1761 init with each same devices which have jsut different Device Address. //KMS241213_1
+  - To implement Input Source Selection, I added some functions and used GPIO. Sometime, we need to define "INTPUT_SOURCE_SELECTION_UPON_POWER_ON". //KMS241213_2
+  - Just check one time upon power on if "INTPUT_SOURCE_SELECTION_UPON_POWER_ON" is defined but it checks current status with intterrupt and upon Power On if "INTPUT_SOURCE_SELECTION_UPON_POWER_ON" is not defined. //KMS241213_3
+  
