@@ -55,4 +55,14 @@
   - To share ADAU1761 init with each same devices which have jsut different Device Address. //KMS241213_1
   - To implement Input Source Selection, I added some functions and used GPIO. Sometime, we need to define "INTPUT_SOURCE_SELECTION_UPON_POWER_ON". //KMS241213_2
   - Just check one time upon power on if "INTPUT_SOURCE_SELECTION_UPON_POWER_ON" is defined but it checks current status with intterrupt and upon Power On if "INTPUT_SOURCE_SELECTION_UPON_POWER_ON" is not defined. //KMS241213_3
+
+## 2024-12-19
+  - Need to move Power_Control() because power should be supplied before DSP/Audio Codec init. //KMS241219_1
   
+## 2024-12-20
+  - Added SYSTEM TICK Timer instead of TIMER21. //KMS241220_1
+  - Changed INPUT_CNTRL_OUT pin from Open-Drain to Push-pull and GPIO_Configure() due to wrong information. //KMS241220_2
+  
+## 2024-12-23
+  - Chnaged sending data of Input Source Control from High --> Low/Low --> High for DSP. //KMS241223_1
+  - The I2S_OUT2 of DSP has not output. So, we changed register setting again. //KMS241223_2

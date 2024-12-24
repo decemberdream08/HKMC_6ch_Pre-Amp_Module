@@ -50,7 +50,7 @@ void PendSV_Handler(void)
 
 void SysTick_Handler(void)
 {
-#ifdef ESTEC_A2B_STACK_PORTING
+#ifdef SYSTICK_TIMER_ENABLE
 	SysTick_Handler_IT();
 #endif
 }
@@ -117,9 +117,7 @@ void TIMER20_IRQHandler(void) {
 }
 
 void TIMER21_IRQHandler(void) {
-#ifdef TIMER21_ENABLE
-	TIMER21_IRQHandler_Interrupt();
-#endif
+
 }
 
 void TIMER30_IRQHandler(void) {

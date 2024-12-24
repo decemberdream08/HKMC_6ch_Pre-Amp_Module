@@ -427,11 +427,6 @@
               <FilePath>..\Drivers\Source\debug_frmwrk.c</FilePath>
             </File>
             <File>
-              <FileName>A31G22x_hal_timer1n.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Drivers\Source\A31G22x_hal_timer1n.c</FilePath>
-            </File>
-            <File>
               <FileName>A31G22x_hal_timer2n.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Drivers\Source\A31G22x_hal_timer2n.c</FilePath>
@@ -505,11 +500,6 @@
               <FileName>timer20.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\timer20.c</FilePath>
-            </File>
-            <File>
-              <FileName>timer21.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\timer21.c</FilePath>
             </File>
             <File>
               <FileName>a2bapp.c</FileName>

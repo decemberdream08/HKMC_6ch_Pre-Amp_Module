@@ -32,12 +32,9 @@ extern void I2C2_SPI20_IRQHandler_MasterInterrupt(void);
 #ifdef TIMER20_ENABLE
 extern void TIMER20_IRQHandler_Interrupt(void);
 #endif //TIMER20_ENABLE
-#ifdef TIMER21_ENABLE
-extern void TIMER21_IRQHandler_Interrupt(void);
-#endif //TIMER21_ENABLE
-#ifdef ESTEC_A2B_STACK_PORTING
+#ifdef SYSTICK_TIMER_ENABLE
 extern void SysTick_Handler_IT(void);
-#endif //DEEP_SLEEP_MODE_ENABLE
+#endif //SYSTICK_TIMER_ENABLE
 
 #ifdef __cplusplus
 extern "C" {

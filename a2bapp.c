@@ -990,7 +990,7 @@ a2b_UInt32 a2b_setup(a2b_App_t *pApp_Info)
 		nResult = a2b_init(pApp_Info);
 		if (nResult != 0)
 		{
-#ifdef ESTEC_A2B_STACK_PORTING_DEBUG_ENABLE
+#ifdef _DEBUG_MSG
 			cputs("\n\rERROR INIT \n\r");
 #endif
 			break;
@@ -1000,7 +1000,7 @@ a2b_UInt32 a2b_setup(a2b_App_t *pApp_Info)
 
 		if (nResult != 0)
 		{
-#ifdef ESTEC_A2B_STACK_PORTING_DEBUG_ENABLE
+#ifdef _DEBUG_MSG
 			cputs("ERROR Load \n\r");
 #endif
 			break;
@@ -1015,7 +1015,7 @@ a2b_UInt32 a2b_setup(a2b_App_t *pApp_Info)
 
 		if (nResult != 0)
 		{
-#ifdef ESTEC_A2B_STACK_PORTING_DEBUG_ENABLE
+#ifdef _DEBUG_MSG
 			cputs("ERROR Start \n\r");
 #endif
 			break;
@@ -1025,7 +1025,7 @@ a2b_UInt32 a2b_setup(a2b_App_t *pApp_Info)
 
 		if (nResult != 0)
 		{
-#ifdef ESTEC_A2B_STACK_PORTING_DEBUG_ENABLE
+#ifdef _DEBUG_MSG
 			cputs("ERROR discover \n\r");
 #endif
 			break;
@@ -1042,6 +1042,10 @@ a2b_UInt32 a2b_setup(a2b_App_t *pApp_Info)
 	{
 		nResult = 1u;
 	}
+	
+#ifdef _DEBUG_MSG
+	cputs("A2B discover Done !!! \n\r");
+#endif
 
 	return (nResult);
 }

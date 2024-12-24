@@ -417,7 +417,7 @@ Status HAL_I2C_MasterTransferData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferCfg,
     TransferCfg->rx_count = 0;
 
     while (I2Cx->ST & 0x04) {}    // busy check //
-
+			
     if (Opt == I2C_TRANSFER_POLLING) {
         /* First Start condition -------------------------------------------------------------- */
         // Reset I2C setup value to default state

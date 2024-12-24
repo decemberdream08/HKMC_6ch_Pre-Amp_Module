@@ -71,8 +71,9 @@ void ADAU1761_Download_Init_Value(uint8_t DEVICE_ADDR_) //KMS241213_1 : To share
 
 void ADAU1761_Init(void)
 {
-	//uint32_t uSize = 0, i;
-	//uint8_t Data = 0, uCommand = 0;
+#ifdef ADAU1761_DEBUG_ENABLE
+	cputs("\n\rADAU1761_Init Start~~~");
+#endif //ADAU1761_DEBUG_ENABLE
 
 //KMS241213_1
 #ifdef MCU_EVK_FUNCTION_TEST
@@ -83,6 +84,10 @@ void ADAU1761_Init(void)
 	ADAU1761_Download_Init_Value(0x3A);
 	ADAU1761_Download_Init_Value(0x3B);
 #endif
+
+#ifdef ADAU1761_DEBUG_ENABLE
+	cputs("\n\rADAU1761_Init Done !!!");
+#endif //ADAU1761_DEBUG_ENABLE
 }
 
 #endif //ADAU1761_ENABLE

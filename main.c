@@ -26,9 +26,6 @@
 #ifdef TIMER20_ENABLE
 #include "timer20.h"
 #endif
-#ifdef TIMER21_ENABLE
-#include "timer21.h"
-#endif
 #ifdef DEEP_SLEEP_MODE_ENABLE
 #include "A31G22x_hal_pwr.h"
 #endif
@@ -41,7 +38,7 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-#ifdef ESTEC_A2B_STACK_PORTING
+#if defined(ESTEC_A2B_STACK_PORTING) || defined(SYSTICK_TIMER_ENABLE)
 uint32_t MilliSec = 0;
 #endif
 #ifdef DEEP_SLEEP_MODE_ENABLE
@@ -51,6 +48,9 @@ Bool B_Deep_Sleep = FALSE;
 a2b_App_t gApp_Info;
 #endif
 
+#ifdef SYSTICK_TIMER_ENABLE
+static uint32_t SysTick_1ms_count = 0, SysTick_100ms_count = 0, SysTick_500ms_count = 0, SysTick_1s_count = 0;
+#endif
 
 /* Private define ------------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -69,7 +69,7 @@ void GPIO_Configure(void);
 #ifdef DEEP_SLEEP_MODE_ENABLE
 void DEEP_SLEEP_EXIT_Configure(void);
 #endif
-#ifdef ESTEC_A2B_STACK_PORTING
+#ifdef SYSTICK_TIMER_ENABLE
 void SysTick_Configure(void);
 #endif
 void mainloop(void);
@@ -118,7 +118,7 @@ void delay_ms(uint32_t m_ms)
 	}
 }
 
-#ifdef ESTEC_A2B_STACK_PORTING
+#ifdef SYSTICK_TIMER_ENABLE
 /**********************************************************************
  * @brief		SysTick handler sub-routine (1ms)
  * @param[in]	None
@@ -128,6 +128,26 @@ void SysTick_Handler_IT (void)
 {
 	/* SysTick Interrupt Handler @ 1000Hz*/
 	MilliSec++;
+
+	if(!(SysTick_1ms_count % 100))
+	{
+		if(!(SysTick_100ms_count%5))
+		{
+			if(SysTick_500ms_count%2)
+			{
+				SysTick_1s_count++;
+#ifdef SYSTICK_DEBUG_MSG
+				cprintf("\n\rSysTick_1s_count = %d\r\n",SysTick_1s_count);
+#endif
+			}
+
+			SysTick_500ms_count++;
+		}
+
+		SysTick_100ms_count++;
+	}
+	
+	SysTick_1ms_count++;
 }
 
 /**********************************************************************
@@ -235,13 +255,13 @@ Bool Input_Source_State(void) //KMS241213_2 : Added new function to check curren
 
 /**********************************************************************
  * @brief		Input_Source_Control
- * @param[in]	None
- * @return 		TRUE : ACC-ON
- *				FALSE : ACC-OFF
+ * @param[in]	B_Aux_Mode
+ * @return 		TRUE : Aux Mode
+ *				FALSE : A2B Mode
  **********************************************************************/
-void Input_Source_Control(Bool B_A2B_Mode) //KMS241213_2 : To inform current mode(A2B or Aux) to DSP using PA3
+void Input_Source_Control(Bool B_Aux_Mode) //KMS241223_1 //KMS241213_2 : To inform current mode(A2B or Aux) to DSP using PA3
 {
-	if(B_A2B_Mode == TRUE)
+	if(B_Aux_Mode == TRUE)
 	{
 #ifdef GPIO_DEBUG_MSG
 		cputs("\n\rSet PA3 !!!");
@@ -364,14 +384,14 @@ void GPIOAB_IRQHandler_IT(void) //KMS24112_6 : External Interrupt Setting for PA
 #ifdef GPIO_DEBUG_MSG
 			cputs("\n\rPA4 GPIO High - Input source A2B");
 #endif
-			Input_Source_Control(TRUE);
+			Input_Source_Control(FALSE); //KMS241223_1 : Changed sending data state for DSP.
 		}
 		else //PA4 - Aux Mode
 		{
 #ifdef GPIO_DEBUG_MSG
 			cputs("\n\rPA4 GPIO Low - Input source Aux");
 #endif
-			Input_Source_Control(FALSE);
+			Input_Source_Control(TRUE); //KMS241223_1 : Changed sending data state for DSP.
 		}
 	}
 #endif //INTPUT_SOURCE_SELECTION_UPON_POWER_ON
@@ -411,23 +431,18 @@ void GPIO_Configure(void) //KMS241126_3 : Added GPIO configuration function.
 
 	//PA1/Pin45(ACC_OUT_MICOM) : Output : This pin is followed by PA0 state
 	HAL_GPIO_ConfigOutput(PA, 1, PCU_MODE_PUSH_PULL);
-	HAL_GPIO_ConfigPullup(PB, 1, PCU_PUPD_PULL_UP); //The schematic doesn't have any external pull-up.
-	HAL_GPIO_ClearPin(PB, _BIT(1));
+	HAL_GPIO_ConfigPullup(PA, 1, PCU_PUPD_PULL_UP); //The schematic doesn't have any external pull-up.
+	HAL_GPIO_ClearPin(PA, _BIT(1));
 
 	//PA2/Pin46(LDO_CNTRL) : Output : This pin is followed by PA1 state but it should work after 1sec when PA1 pin state is changed.
 	HAL_GPIO_ConfigOutput(PA, 2, PCU_MODE_PUSH_PULL);
-	HAL_GPIO_ConfigPullup(PB, 2, PCU_PUPD_PULL_UP); //The schematic doesn't have any external pull-up.
-	HAL_GPIO_ClearPin(PB, _BIT(2));
+	HAL_GPIO_ConfigPullup(PA, 2, PCU_PUPD_PULL_UP); //The schematic doesn't have any external pull-up.
+	HAL_GPIO_ClearPin(PA, _BIT(2));
 
 	//PA3/Pin47(INPUT_CNTRL_OUT) : Output : This pin is followed by PA4 below. - High : Input source A2B / Low : Input Source Aux
-#ifdef MCU_EVK_FUNCTION_TEST
-	HAL_GPIO_ConfigOutput(PA, 3, PCU_MODE_PUSH_PULL);
-	HAL_GPIO_ConfigPullup(PB, 3, PCU_PUPD_PULL_UP);
-#else //MCU_EVK_FUNCTION_TEST
-	HAL_GPIO_ConfigOutput(PA, 3, PCU_MODE_OPEN_DRAIN); //Open-Drain
-	HAL_GPIO_ConfigPullup(PB, 3, PCU_PUPD_DISABLE); //The schematic has external pull-up & pull-down.
-#endif
-	HAL_GPIO_ClearPin(PB, _BIT(3));
+	HAL_GPIO_ConfigOutput(PA, 3, PCU_MODE_PUSH_PULL); //KMS241220_2 : Changed this pin to Push-pull
+	HAL_GPIO_ConfigPullup(PA, 3, PCU_PUPD_PULL_UP);
+	HAL_GPIO_ClearPin(PA, _BIT(3));
 
 	//PA4/Pin48(INPUT_CNTRL) : Input : Just pass input signal to PA3 and check input just one time. - High : Input source A2B / Low : Input Source Aux
 	HAL_GPIO_ConfigOutput(PA, 4, PCU_MODE_INPUT);
@@ -494,13 +509,10 @@ void mainloop(void)
 #ifdef TIMER20_ENABLE
 	TIMER20_Configure();
 #endif
-#ifdef TIMER21_ENABLE
-	TIMER21_Configure();
-#endif	
 #ifdef GPIO_ENABLE
 	EXTI_PortA_Configure();
 #endif
-#ifdef ESTEC_A2B_STACK_PORTING
+#ifdef SYSTICK_TIMER_ENABLE
 	/*Configure SysTick peripheral*/
 	SysTick_Configure();
 #endif
@@ -508,15 +520,7 @@ void mainloop(void)
 	/* Enable IRQ Interrupts */
 	__enable_irq();
 
-#ifdef ADAU1452_ENABLE
-	ADAU1452_Init(); //DSP Init
-#endif
-#ifdef ADAU1761_ENABLE
-	ADAU1761_Init(); //Audio Codec Init
-#endif
-#ifdef MCU_EVK_FUNCTION_TEST
-	MCU_EVK_Function_Test();
-#endif
+//KMS241219_1 : Need to move here because power should be supplied before DSP/Audio Codec init.
 #ifdef MCU_RESET_AFTER_WAKE_UP//KMS241129_1 : After MCU reset from wake-up, it need to set ACC_ON status in here. 
 	//Becuase MCU interrupt pin has internal pull-up that's why MCU can't detect ACC_ON status on MCU reset.
 	if(ACC_On_State() == TRUE)
@@ -525,6 +529,11 @@ void mainloop(void)
 		cputs("\n\rACC_ON is detected on MCU restart");
 #endif
 		B_Need_ACC_On = TRUE;
+
+		
+#ifdef GPIO_ENABLE //KMS241219_1 : Need to move here because power should be supplied before DSP/Audio Codec init.
+		Power_Control(); //KMS241127_2 : Power Control is executed here.
+#endif
 	}
 #endif
 #ifdef GPIO_ENABLE //KMS241213_2
@@ -534,16 +543,27 @@ void mainloop(void)
 #ifdef GPIO_DEBUG_MSG
 		cputs("\n\rInput Source is A2B Mode upon Power On !!!");
 #endif
-		Input_Source_Control(TRUE);
+		Input_Source_Control(FALSE); //KMS241223_1 : Changed sending data state for DSP.
 	}
 	else
 	{
 #ifdef GPIO_DEBUG_MSG
 		cputs("\n\rInput Source is Aux Mode upon Power On !!!");
 #endif
-		Input_Source_Control(FALSE);
+		Input_Source_Control(TRUE); //KMS241223_1 : Changed sending data state for DSP.
 	}
 #endif //GPIO_ENABLE
+
+//KMS241219_1
+#ifdef ADAU1452_ENABLE
+	ADAU1452_Init(); //DSP Init
+#endif
+#ifdef ADAU1761_ENABLE
+	ADAU1761_Init(); //Audio Codec Init
+#endif
+#ifdef MCU_EVK_FUNCTION_TEST
+	MCU_EVK_Function_Test();
+#endif
 
 #ifdef ESTEC_A2B_STACK_PORTING
 	/* system/platform specific initialization */

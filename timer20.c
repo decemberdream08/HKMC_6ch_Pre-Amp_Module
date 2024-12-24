@@ -25,6 +25,7 @@ TIMER2n_CFG_Type TIMER20_Config;
 /* Private function prototypes ---------------------------------------*/
 static void Main_TIMER20_IRQHandler(void);
 static void TIMER20_Interrupt_Service_Routine(void);
+
 void TIMER20_IRQHandler_Interrupt(void);
 
 
@@ -119,5 +120,5 @@ void TIMER20_Interrupt_Service_Routine( void )
 	B_Deep_Sleep = TRUE;
 }
 
-#endif //TIMER21_ENABLE
+#endif //TIMER20_ENABLE
 

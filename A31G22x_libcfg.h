@@ -17,6 +17,7 @@
 #define _A31G22x_LIBCFG_H_
 
 #include "A31G22x_hal_aa_types.h"
+#include "main_conf.h"
 
 /******************* PERIPHERAL FW LIBRARY CONFIGURATION DEFINITIONS ***********************/
 /* Comment the line below to disable the specific peripheral inclusion */
@@ -49,7 +50,9 @@
 //#define _TIMER1n
 
 /* TIMER2n ------------------------------- */
+#ifdef TIMER20_ENABLE
 #define _TIMER2n //KMS241127_3
+#endif
 
 /* TIMER30 ------------------------------- */
 //#define _TIMER30
@@ -64,7 +67,9 @@
 //#define _SPI2n
 
 /* I2C ------------------------------- */
+#if defined(I2C_0_ENABLE) || defined(I2C_1_ENABLE)
 #define _I2C
+#endif
 
 /* ADC ------------------------------- */
 //#define _ADC
@@ -85,7 +90,9 @@
 //#define _CRC
 
 /* PWR ------------------------------- */
+#ifdef DEEP_SLEEP_MODE_ENABLE
 #define _PWR //KMS241128_1
+#endif
 
 /* CORE ------------------------------- */
 #define _CORE

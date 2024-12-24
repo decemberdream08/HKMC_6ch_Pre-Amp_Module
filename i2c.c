@@ -19,6 +19,9 @@
 #include "main_conf.h"
 #if defined(I2C_0_ENABLE) || defined(I2C_1_ENABLE)
 #include "i2c.h"
+#ifdef TIMER21_ONESHOT_MODE
+#include "timer21.h"
+#endif
 
 /** Select Test I2C Channel before project compile (Must be set a channel) */
 //#define TEST_I2Cn	(0) // I2C0

@@ -40,14 +40,7 @@ extern "C"
 #endif
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-//Functions
-#define ESTEC_BOARD			(1)
-#define I2C_0_ENABLE			(1) //Use I2C 0 for the communication with DSP/A2B Transceiver - PF6:SCL0, PF7:SDA0. If you don't use I2C0, please make sure to disable this macro !!!
-#define I2C_1_ENABLE			(1) //Use I2C 1 for the communication with ADC/DAC - PF0:SCL1, PF1:SDA1.
-#define TIMER20_COUNTER_ENABLE		(1) //Enable 100ms timer.
-#define GPIO_ENABLE					(1) //KMS241125_5 : Added GPIO code.
-#define TIMER20_ENABLE			(1) //KMS241127_4 : Added TIMER20 code. This is timer for ACC OFF only.
-#define TIMER21_ENABLE			(1) //KMS241127_5 : Added TIMER20 code. This is just continueous tick.
+//Feature
 #define DEEP_SLEEP_MODE_ENABLE		(1) //KMS241128_1 : Added DEEP SLEEP mode code.
 #ifdef DEEP_SLEEP_MODE_ENABLE
 #define MCU_RESET_AFTER_WAKE_UP		(1) //KMS241129_1 : Implemented MCU reset after wake-up from Deep-sleep.
@@ -58,6 +51,15 @@ extern "C"
 #ifdef ESTEC_A2B_STACK_PORTING
 #define A2B_STACK_CODE_FROM_ADI			(1) //KMS241211_1 : To make A2B Stack code as module code. So we can remove A2B Stack without disabling "A2B_STACK_CODE_FROM_ADI".
 #endif
+
+//Functions
+#define ESTEC_BOARD					(1)
+#define I2C_0_ENABLE				(1) //Use I2C 0 for the communication with DSP/A2B Transceiver - PF6:SCL0, PF7:SDA0. If you don't use I2C0, please make sure to disable this macro !!!
+#define I2C_1_ENABLE				(1) //Use I2C 1 for the communication with ADC/DAC - PF0:SCL1, PF1:SDA1.
+#define TIMER20_COUNTER_ENABLE		(1) //Enable 100ms timer.
+#define GPIO_ENABLE					(1) //KMS241125_5 : Added GPIO code.
+#define TIMER20_ENABLE				(1) //KMS241127_4 : Added TIMER20 code. This is timer for ACC OFF only.
+#define SYSTICK_TIMER_ENABLE		(1) //KMS241220_1 : Added SYSTEM TICK Timer instead of TIMER21.
 
 //Pheriperal Devices
 #define ADAU1452_ENABLE				(1) //KMS241126_1 : Added ADAU1452(DSP) code //I2C_0
@@ -85,9 +87,6 @@ extern "C"
 #endif //GPIO_DEBUG_MSG
 #ifdef TIMER20_ENABLE
 //#define TIMER20_DEBUG_MSG		(1) // Debug message for TIMER20
-#endif
-#ifdef TIMER21_ENABLE
-//#define TIMER21_DEBUG_MSG		(1) // Debug message for TIMER21
 #endif
 #ifdef DEEP_SLEEP_MODE_ENABLE
 //#define DEEP_SLEEP_MODE_DEBUG_MSG		(1) // Debug message for DEEP SLEEP MODE
