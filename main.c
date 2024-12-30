@@ -503,7 +503,7 @@ void mainloop(void)
 	GPIO_Configure();
 #endif
 
-#if defined(I2C_0_ENABLE) || defined(I2C_1_ENABLE)
+#if 0//defined(I2C_0_ENABLE) || defined(I2C_1_ENABLE) //KMS241224_1 
 	I2C_Configure(I2C_SPEED_400K, MASTER); //Define I2C Speed and Master/Slave. //KMS241206_1 : A2B I2C speed is fixed 400K in A2B and MCU both sides.
 #endif
 #ifdef TIMER20_ENABLE
@@ -536,6 +536,11 @@ void mainloop(void)
 #endif
 	}
 #endif
+#if defined(I2C_0_ENABLE) || defined(I2C_1_ENABLE) //KMS241224_1 : I2C I/F Init is moved after Power_Control() due to DSP Init problem and added delay 500ms.
+	delay_ms(100);
+	I2C_Configure(I2C_SPEED_400K, MASTER); //Define I2C Speed and Master/Slave. //KMS241206_1 : A2B I2C speed is fixed 400K in A2B and MCU both sides.
+#endif
+
 #ifdef GPIO_ENABLE //KMS241213_2
 	//KMS241213_3 : Just check one time upon power on if "INTPUT_SOURCE_SELECTION_UPON_POWER_ON" is defined but it checks current status with intterrupt and upon Power On if "INTPUT_SOURCE_SELECTION_UPON_POWER_ON" is not defined
 	if(Input_Source_State() == TRUE)

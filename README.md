@@ -64,5 +64,11 @@
   - Changed INPUT_CNTRL_OUT pin from Open-Drain to Push-pull and GPIO_Configure() due to wrong information. //KMS241220_2
   
 ## 2024-12-23
-  - Chnaged sending data of Input Source Control from High --> Low/Low --> High for DSP. //KMS241223_1
+  - Changed sending data of Input Source Control from High --> Low/Low --> High for DSP. //KMS241223_1
   - The I2S_OUT2 of DSP has not output. So, we changed register setting again. //KMS241223_2
+  
+## 2024-12-24
+  - I2C I/F Init is moved after Power_Control() due to DSP Init problem and added delay 500ms. //KMS241224_1
+  
+## 2024-12-25
+  - Finished Audio path Configuration including L/R position as our spec. //KMS241225_1

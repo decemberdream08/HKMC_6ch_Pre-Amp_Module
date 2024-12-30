@@ -126,6 +126,8 @@ void ADAU1452_Download_Init_Value(void)
 #else //MCU_EVK_FUNCTION_TEST
 
 //KMS241223_2 : the I2S_OUT2 of DSP has not output. So, we changed register setting again.
+//KMS241225_1 : Finished Audio path Configuration including L/R position as our spec.
+
 void ADAU1452_Download_Init_Value(void)
 {
 	SIGMA_WRITE_REGISTER_BLOCK( DEVICE_ADDR_ADAU1452, 0xF890, 2, (uint8_t *)MODE_1_0);			/* IC 1.SOFT_RESET */
