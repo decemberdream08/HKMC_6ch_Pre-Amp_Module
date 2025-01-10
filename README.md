@@ -72,3 +72,15 @@
   
 ## 2024-12-25
   - Finished Audio path Configuration including L/R position as our spec. //KMS241225_1
+  - Made Mute function of ADAU1761. //KMS250106_2
+
+## 2024-12-30
+  - Master A2B transceiver doesn't work due to revision mismatching(actual revision is 0.1). Please refer to "adi_a2b_busconfig.c". //KMS241230_1
+
+## 2025-01-06
+  - Changed timing from 100ms to 500ms due to ADAU1452 Init failure. //KMS250106_1
+  - Added Mute function of ADAU1761. //KMS250106_2
+
+## 2025-01-09
+  - To fix DSP NG issue(DSP doesn't wake-up when Power on. This issue is caused by DSP POR), I changed codes that MCU PA4 output can control DSP RESET in DSP init. //KMS250109_1
+  - To avoid stack overflow when I2C function is executed DSP init, we use heap. Need to check starup_A31G22x.s also. //KMS250109_2

@@ -221,6 +221,11 @@ void ADAU1452_Init(void)
 	cputs("\n\rADAU1452_Init Start~~~");
 #endif //ADAU1452_DEBUG_ENABLE
 
+	//KMS250109_1 : Added ADAU1452 RESET before MCU Init
+	HAL_GPIO_ClearPin(PA, _BIT(5));
+	delay_ms(1000);
+	HAL_GPIO_SetPin(PA, _BIT(5));
+	delay_ms(1000);
 	ADAU1452_Download_Init_Value();
 
 #ifdef ADAU1452_DEBUG_ENABLE

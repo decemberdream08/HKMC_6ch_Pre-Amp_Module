@@ -25,6 +25,71 @@
 //	#define ADI_REG_TYPE       uint8_t --> #define ADI_REG_TYPE       const uint8_t
 //2. In ADAU1761.c, we have to change from MODE_x_x to (uinit 8 *)MODE_x_x.
 
+void ADAU1761_Mute(Bool Mute_On) //KMS250106_2 : Made Mute function of ADAU1761
+{
+	uint8_t array[1], Read[1];
+	int i;
+	uint8_t Address = 0;
+	
+	for(i=0;i<4;i++)
+	{
+		switch(i)
+		{
+			case 0:
+				Address = 0x38;
+				break;
+			case 1:
+				Address = 0x39;
+				break;
+			case 2:
+				Address = 0x3A;
+				break;
+			case 3:
+				Address = 0x3B;
+				break;
+			default:
+				break;
+		}
+		cprintf("\n\r ADAU1761 Address = 0x%02x",Address);
+
+		if(Mute_On == TRUE)
+		{
+			Read[0] = 0;
+			I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_1, Address, 0x4023, Read, 1);
+			array[0] = Read[0] & (~0x02);
+			SIGMA_WRITE_REGISTER_BLOCK( Address, 0x4023, 1, array);
+			Read[0] = 0;
+			I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_1, Address, 0x4024, Read, 1);
+			array[0] = Read[0] & (~0x02);
+			SIGMA_WRITE_REGISTER_BLOCK( Address, 0x4024, 1, array);
+			Read[0] = 0;
+			I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_1, Address, 0x4025, Read, 1);
+			array[0] = Read[0] & (~0x02);
+			SIGMA_WRITE_REGISTER_BLOCK( Address, 0x4025, 1, array);
+			Read[0] = 0;
+			I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_1, Address, 0x4026, Read, 1);
+			array[0] = Read[0] & (~0x02);
+			SIGMA_WRITE_REGISTER_BLOCK( Address, 0x4026, 1, array);
+			Read[0] = 0;
+			I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_1, Address, 0x4026, Read, 1);
+			array[0] = Read[0] & (~0x10);
+			SIGMA_WRITE_REGISTER_BLOCK( Address, 0x4028, 1, array);
+		}
+		else
+		{
+			array[0] = Read[0] | (0x02);
+			SIGMA_WRITE_REGISTER_BLOCK( Address, 0x4023, 1, array);
+			array[0] = Read[0] | (0x02);
+			SIGMA_WRITE_REGISTER_BLOCK( Address, 0x4024, 1, array);
+			array[0] = Read[0] | (0x02);
+			SIGMA_WRITE_REGISTER_BLOCK( Address, 0x4025, 1, array);
+			array[0] = Read[0] | (0x02);
+			SIGMA_WRITE_REGISTER_BLOCK( Address, 0x4026, 1, array);
+			array[0] = Read[0] | (0x10);
+			SIGMA_WRITE_REGISTER_BLOCK( Address, 0x4028, 1, array);
+		}
+	}
+}
 void ADAU1761_Download_Init_Value(uint8_t DEVICE_ADDR_) //KMS241213_1 : To share ADAU1761 init with each same devices which have jsut different Device Address.
 {
 	SIGMA_WRITE_REGISTER_BLOCK( DEVICE_ADDR_, 0x40EB, 1, (uint8_t *)MODE_0_0); 		/* IC 1.Sample Rate Setting */

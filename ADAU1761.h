@@ -38,6 +38,6 @@
 * Private Function Prototype
 *******************************************************************************/
 void ADAU1761_Init(void);
-
+void ADAU1761_Mute(Bool Mute_On); //KMS250106_2 : Made Mute function of ADAU1761
 
 #endif //__ADAU1761_INIT_REG_H__

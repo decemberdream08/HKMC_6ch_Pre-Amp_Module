@@ -1044,7 +1044,7 @@ a2b_UInt32 a2b_setup(a2b_App_t *pApp_Info)
 	}
 	
 #ifdef _DEBUG_MSG
-	cputs("A2B discover Done !!! \n\r");
+	cputs("A2B Setup Done !!! \n\r");
 #endif
 
 	return (nResult);

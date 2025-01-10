@@ -87,6 +87,7 @@ static const char Menu[] =
 "\t - Core: ARM Cortex-M0+ \n\r"
 "\t - Communicate via: USART10 - 38400 bps \n\r"
 "\t - I2C Master Interrupt Test \n\r"
+"\t - 2025/01/09 - PM \n\r"
 "************************************************\n\r";
 #endif
 
@@ -449,6 +450,12 @@ void GPIO_Configure(void) //KMS241126_3 : Added GPIO configuration function.
 	HAL_GPIO_ConfigPullup(PA, 4, PCU_PUPD_PULL_UP);
 	HAL_GPIO_SetDebouncePin(PA, 4, ENABLE);
 	HAL_GPIO_ClearPin(PA, _BIT(4));
+
+	//KMS250109_1 : Added DSP RESET Control. SET Low
+	//PA5/Pin1(DSP_RESET_CNTRL) : Output : - High : NORMAL / Low : DSP RESET
+	HAL_GPIO_ConfigOutput(PA, 5, PCU_MODE_OPEN_DRAIN);
+	HAL_GPIO_ConfigPullup(PA, 5, PCU_PUPD_DISABLE);
+	HAL_GPIO_ClearPin(PA, _BIT(5));
 }
 #endif
 
@@ -537,7 +544,7 @@ void mainloop(void)
 	}
 #endif
 #if defined(I2C_0_ENABLE) || defined(I2C_1_ENABLE) //KMS241224_1 : I2C I/F Init is moved after Power_Control() due to DSP Init problem and added delay 500ms.
-	delay_ms(100);
+	delay_ms(500); //KMS250106_1 : Changed timing from 100ms to 500ms due to ADAU1452 Init failure.
 	I2C_Configure(I2C_SPEED_400K, MASTER); //Define I2C Speed and Master/Slave. //KMS241206_1 : A2B I2C speed is fixed 400K in A2B and MCU both sides.
 #endif
 
