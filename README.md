@@ -84,3 +84,6 @@
 ## 2025-01-09
   - To fix DSP NG issue(DSP doesn't wake-up when Power on. This issue is caused by DSP POR), I changed codes that MCU PA4 output can control DSP RESET in DSP init. //KMS250109_1
   - To avoid stack overflow when I2C function is executed DSP init, we use heap. Need to check starup_A31G22x.s also. //KMS250109_2
+  
+## 2025-01-10
+  - To support TDM8 under A2B Slave mode like NE-N. //KMS250110_1

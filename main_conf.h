@@ -52,6 +52,7 @@ extern "C"
 #define A2B_STACK_CODE_FROM_ADI			(1) //KMS241211_1 : To make A2B Stack code as module code. So we can remove A2B Stack without disabling "A2B_STACK_CODE_FROM_ADI".
 #endif
 
+#define A2B_SLAVE_WORKING_SUPPORT_TMD8_32BIT			(1) //KMS250110_1 : To support TDM8 under A2B Slave mode like NE-N
 
 //Functions
 #define ESTEC_BOARD					(1)
