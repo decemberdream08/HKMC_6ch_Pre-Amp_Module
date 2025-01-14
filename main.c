@@ -501,6 +501,9 @@ void mainloop(void)
 #ifdef ESTEC_A2B_STACK_PORTING
 	a2b_UInt32 nResult = 0;
 #endif
+#ifdef ADAU1452_DUMP //KMS250113_1 : Added Dump code for ADAU1452 registers.
+	int32_t count = 0;
+#endif
 
 	/*Configure menu prinf*/
 	DEBUG_MenuPrint();
@@ -600,6 +603,14 @@ void mainloop(void)
 	cputs("\n\rInit Done !!!");
 #endif
 	while(1) {
+#ifdef ADAU1452_DUMP //KMS250113_1 : Added Dump code for ADAU1452 registers.
+		count++;
+		
+		if(count == 1000)
+		{				
+			ADAU1452_Register_All_Read();
+		}
+#endif //ADAU1452_DUMP
 		/*User Code start*/
 #ifdef GPIO_ENABLE
 		Power_Control(); //KMS241127_2 : Power Control is executed here.

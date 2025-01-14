@@ -87,3 +87,6 @@
   
 ## 2025-01-10
   - To support TDM8 under A2B Slave mode like NE-N. //KMS250110_1
+  
+## 2025-01-13
+  - Added Dump code for ADAU1452 registers. But some register size should be fixed later. //KMS250113_1

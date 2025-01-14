@@ -95,6 +95,7 @@ extern "C"
 #endif
 #ifdef ADAU1452_ENABLE
 //#define ADAU1452_DEBUG_ENABLE	(1) //Debug message for ADAU1452
+//#define ADAU1452_DUMP			(1) //Debug message for ADAU1452 Register Dump
 #endif
 #ifdef ADAU1761_ENABLE
 //#define ADAU1761_DEBUG_ENABLE	(1) //Debug message for ADAU1761

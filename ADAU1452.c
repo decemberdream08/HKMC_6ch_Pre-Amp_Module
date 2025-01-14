@@ -127,6 +127,605 @@ void ADAU1452_Download_Init_Value(void)
 
 //KMS241223_2 : the I2S_OUT2 of DSP has not output. So, we changed register setting again.
 //KMS241225_1 : Finished Audio path Configuration including L/R position as our spec.
+#ifdef ADAU1452_DUMP //KMS250113_1 : Added Dump code for ADAU1452 registers.
+void ADAU1452_Register_All_Read(void)
+{
+	uint8_t Read[2];
+	uint16_t sub_address;
+	uint32_t i;
+
+	/* IC 1.SOFT_RESET */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF890+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	delay_ms(20);			/* IC 1.Reset Delay */
+
+	/* IC 1.HIBERNATE */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF400+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+
+	delay_ms(20);			/* IC 1.Hibernate Delay */
+	
+	/* IC 1.KILL_CORE */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF403+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.PLL_ENABLE */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF003+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.PLL_CTRL0 Register */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF000+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.PLL_CTRL1 Register */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF001+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.PLL_CLK_SRC Register */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF002+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.MCLK_OUT Register */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF005+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.PLL_ENABLE Register */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF003+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	delay_ms(20);			/* IC 1.PLL Lock Delay */
+	
+	/* IC 1.POWER_ENABLE0 Register */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF050+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.POWER_ENABLE1 Register */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF051+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.CLK_GEN2_M */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF022+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.CLK_GEN3_M */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF024+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.CLK_GEN3_N */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF025+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.CLK_GEN3_SRC */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF026+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.DMIC_CTRL0 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF560+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.DMIC_CTRL1 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF561+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.MP0_MODE */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF510+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.MP1_MODE */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF511+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.MP6_MODE */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF516+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.MP7_MODE */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF517+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.MP9_MODE */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF519+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.MP13_MODE */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF51D+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.SPDIF_TX_PIN */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF798+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.ASRC_INPUT0 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF100+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.ASRC_INPUT1 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF101+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.ASRC_INPUT2 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF102+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.ASRC_OUT_RATE0 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF140+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.ASRC_OUT_RATE1 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF141+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.ASRC_OUT_RATE2 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF142+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE0 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF180+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE1 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF181+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.SOUT_SOURCE2 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF182+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.SOUT_SOURCE3 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF183+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+		
+	/* IC 1.SOUT_SOURCE4 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF184+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE5 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF185+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE6 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF186+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE7 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF187+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE8 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF188+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE9 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF189+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE10 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF18A+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE11 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF18B+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE12 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF18C+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE13 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF18D+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE14 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF18E+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE15 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF18F+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE16 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF190+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE17 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF191+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE18 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF192+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE19 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF193+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE20 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF194+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE21 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF195+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE22 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF196+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SOUT_SOURCE23 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF197+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SPDIFTX_INPUT */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF1C0+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SERIAL_BYTE_0_0 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF200+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SERIAL_BYTE_1_0 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF204+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SERIAL_BYTE_2_0 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF208+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SERIAL_BYTE_3_0 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF20C+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SERIAL_BYTE_4_0 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF210+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SERIAL_BYTE_5_0 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF214+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SERIAL_BYTE_6_0 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF185+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SERIAL_BYTE_7_0 */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF21C+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SPDIF_RESTART */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF604+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.SPDIF_TX_EN */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF690+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* Program Data */
+	for(i=0;i<310;i++)
+	{
+		sub_address = 0xC000+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* DM0 Data */
+	for(i=0;i<86;i++)
+	{
+		sub_address = 0x0000+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* DM1 Data */
+	for(i=0;i<8;i++)
+	{
+		sub_address = 0x6010+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.KILL_CORE */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF403+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.START_ADDRESS */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF404+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.START_PULSE */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF401+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	/* IC 1.START_CORE */
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF402+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+	
+	delay_ms(20);			/* IC 1.Start Delay */
+	
+	for(i=0;i<1;i++)
+	{
+		sub_address = 0xF400+i;
+		I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_0, DEVICE_ADDR_ADAU1452, sub_address, Read, 2);
+		cprintf("\n\rAddress 0x%04x = 0x%02x%02x",sub_address,Read[0],Read[1]);
+	}
+}
+#endif //ADAU1452_DUMP
 
 void ADAU1452_Download_Init_Value(void)
 {
