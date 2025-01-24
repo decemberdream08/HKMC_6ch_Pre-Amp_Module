@@ -815,7 +815,7 @@ void ADAU1452_Download_Init_Value(void)
 #endif //MCU_EVK_FUNCTION_TEST
 
 void ADAU1452_Init(void)
-{	
+{
 #ifdef ADAU1452_DEBUG_ENABLE
 	cputs("\n\rADAU1452_Init Start~~~");
 #endif //ADAU1452_DEBUG_ENABLE

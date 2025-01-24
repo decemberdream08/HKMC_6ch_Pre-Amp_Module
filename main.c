@@ -87,7 +87,7 @@ static const char Menu[] =
 "\t - Core: ARM Cortex-M0+ \n\r"
 "\t - Communicate via: USART10 - 38400 bps \n\r"
 "\t - I2C Master Interrupt Test \n\r"
-"\t - 2025/01/09 - PM \n\r"
+"\t - 2025/01/24 - PM \n\r"
 "************************************************\n\r";
 #endif
 

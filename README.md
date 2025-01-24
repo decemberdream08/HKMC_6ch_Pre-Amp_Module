@@ -90,3 +90,7 @@
   
 ## 2025-01-13
   - Added Dump code for ADAU1452 registers. But some register size should be fixed later. //KMS250113_1
+  
+## 2025-01-20
+  - Changed ADAU1452 init values due to A2B LR Swapping. But It'll be changed after HKMC defines A2B Audio source spec. Please refer to ADAU1452.c/ADAU_1452_Init_Reg.h.
+  - Changed ADAU1452 init values due to Aux LR change issue. //KMS250120_1
