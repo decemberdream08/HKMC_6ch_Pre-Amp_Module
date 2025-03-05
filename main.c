@@ -697,7 +697,7 @@ void mainloop(void)
 		ADAU1452_Init(); //DSP Init
 #endif
 #ifdef ADAU1761_ENABLE
-		//ADAU1761_Init(); //Audio Codec Init
+		ADAU1761_Init(); //Audio Codec Init
 #endif
 #if 0//def MCU_EVK_FUNCTION_TEST
 		MCU_EVK_Function_Test();
