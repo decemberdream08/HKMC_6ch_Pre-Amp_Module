@@ -39,7 +39,17 @@
 /** Slave Address Setting */
 /** Master and Slave Address */
 #define MASTER_ADDR	                (0xC0 >> 1) // Master Address
+#ifdef I2C_1_SLAVE_ENABLE 
+//## I2C_1(Slave Mode) = 8bit : 0xD4/7bit : 0x6A(TAS6422Q1) : A2B Recevier write only 4 Bytes(0x00:0x10, 0x03:0x44, 0x04:0x00, 0x05:0xFF)
+//## I2C_0(Master Mode) = If I2C Switch is High(PF2 = 1), DSP/Ext.A2B is connected with I2C_0. If I2C Switch is Low(PF2 = 0), Codec ICs is connected with I2C_1.
+#define SLAVE_ADDR	                (0x6A) // Slave Address
+#else //I2C_1_SLAVE_ENABLE
 #define SLAVE_ADDR	                (0xC0 >> 1) // Slave Address
+#endif //I2C_1_SLAVE_ENABLE
+
+#ifdef I2C_1_SLAVE_ENABLE //KMS250228_4
+#define READ_BUFFER_SIZE			(5)
+#endif
 
 /** INTERVAL TEST */
 //#define INTERVAL_TEST
@@ -72,6 +82,10 @@ typedef struct {
 	uint8_t I2cName[5];
 } I2Cn_PORT_Type;
 
+#ifdef I2C_1_SLAVE_ENABLE //KMS250228_4
+I2C_S_SETUP_Type SlaveCfg;
+#endif
+
 /*******************************************************************************
 * Private Variable
 *******************************************************************************/
@@ -91,9 +105,13 @@ static const I2Cn_PORT_Type I2C_PORT_CFG[I2C_IP_INDEX_MAX] = {
 	{I2C2,              PC,  6, PCU_ALT_FUNCTION_1,              PC, 5, PCU_ALT_FUNCTION_1, I2C2_SPI20_IRQn, "I2C2"},
 #endif //ESTEC_BOARD
 };
+
+#ifdef I2C_1_SLAVE_ENABLE //KMS250228_4
+uint8_t SlaveReadBuffer[READ_BUFFER_SIZE] = {0,}; 
+#endif
+
 static const I2Cn_PORT_Type * i2c0_Master = &(I2C_PORT_CFG[0]);
 static const I2Cn_PORT_Type * i2c1_Master = &(I2C_PORT_CFG[1]);
-
 
 static Bool complete;  // Interrupt Flag
 static Bool isMasterMode = TRUE; // Interrupt Master FLag
@@ -108,6 +126,52 @@ static void Main_I2CnIRQHandler(I2C_Type *pI2Cx);
 /*******************************************************************************
 * Public Function
 *******************************************************************************/
+
+#ifdef I2C_1_SLAVE_ENABLE //KMS250228_4
+Bool Slave_Read_Buffer_Not_Empty(void)
+{
+#ifdef _I2C_1_DEBUG_MSG
+	uint8_t i;
+#endif
+
+	if(SlaveReadBuffer[0])
+	{
+#ifdef _I2C_1_DEBUG_MSG
+		for(i=0;i<5;i++)
+			cprintf("0x%02x ", SlaveReadBuffer[i]);
+#endif
+		Slave_Read_Init();
+
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+void Slave_Read_Init(void)
+{
+	//-----------------------------------------------------------------------------------------------
+	//| Slave Address | Data [0] | Data [1] | ... | Data [n] |
+	//-----------------------------------------------------------------------------------------------
+	Buffer_Init(SlaveReadBuffer, 0, READ_BUFFER_SIZE);
+	SlaveCfg.rx_data = SlaveReadBuffer;
+	SlaveCfg.rx_length = 5;
+
+#ifdef _I2C_1_DEBUG_MSG
+	cputs("\r\n Slave Read Test START\r\n");
+#endif
+	//complete=FALSE;
+	HAL_I2C_SlaveReceiveData(i2c1_Master->pI2Cx, &SlaveCfg, I2C_TRANSFER_INTERRUPT);
+	//while(!complete);
+	__NOP();
+#ifdef _I2C_1_DEBUG_MSG
+	cputs("\r\n Slave Read Test OK \r\n");
+#endif
+}
+#endif
+
 /**********************************************************************
  * @brief		I2C channel configuration
  * @param[in]	pConfig
@@ -131,6 +195,18 @@ static void I2C_ChannelConfig(const I2Cn_PORT_Type * pConfig, uint32_t Speed, I2
 	HAL_GPIO_ConfigFunction(pConfig->pSdaPort, pConfig->SdaPort_Number, pConfig->SdaAltFunc);
 //	HAL_PCU_ConfigureDebounce(pConfig->pSdaPort, pConfig->SdaPort_Number, ENABLE);	// debounce enable (for Chip Test)
 
+#ifdef I2C_1_SLAVE_ENABLE //KMS250228_4 : To support I2C slave setting, the Address setting should be next after I2C enable.
+	// Initialize Master I2C peripheral
+	HAL_I2C_Init(pConfig->pI2Cx, Speed);
+
+	/* Set Own Slave Address for I2C device */
+    if (Type == SLAVE) {
+        HAL_I2C_SetOwnSlaveAddr0(pConfig->pI2Cx, SLAVE_ADDR, DISABLE);
+        HAL_I2C_SetOwnSlaveAddr1(pConfig->pI2Cx, SLAVE_ADDR, DISABLE);
+	
+		Slave_Read_Init();	
+    }
+#else //I2C_1_SLAVE_ENABLE
 	/* Set Own Slave Address for I2C device */
     if (Type == SLAVE) {
         HAL_I2C_SetOwnSlaveAddr0(pConfig->pI2Cx, SLAVE_ADDR, DISABLE);
@@ -139,9 +215,26 @@ static void I2C_ChannelConfig(const I2Cn_PORT_Type * pConfig, uint32_t Speed, I2
 
 	// Initialize Master I2C peripheral
 	HAL_I2C_Init(pConfig->pI2Cx, Speed);
+#endif
 }
 
 #if defined(I2C_0_ENABLE) || defined(I2C_1_ENABLE)
+#ifdef I2C_1_SLAVE_ENABLE //KMS250228_4
+void I2C_Configure(I2C_Port_No port, I2C_SPEED_STEP speed, I2Cn_Type mode)
+{
+	if(port > I2C_1) //I2C_0
+	{
+		I2C_ChannelConfig(i2c0_Master, speed, mode); //I2C0 Config
+	}
+	else //I2C_1
+	{
+#ifdef _I2C_1_DEBUG_MSG
+		cputs("\n\r I2C_Configure() : Slave !!!");
+#endif
+		I2C_ChannelConfig(i2c1_Master, speed, mode); //I2C0 Config
+	}
+}
+#else //I2C_1_SLAVE_ENABLE
 void I2C_Configure(I2C_SPEED_STEP speed, I2Cn_Type mode) //Define I2C Speed and Master/Slave
 {
 #ifdef I2C_MANUAL_BUS_CONTROL
@@ -154,6 +247,7 @@ void I2C_Configure(I2C_SPEED_STEP speed, I2Cn_Type mode) //Define I2C Speed and 
 	I2C_ChannelConfig(i2c0_Master, speed, mode); //I2C0 Config
 	I2C_ChannelConfig(i2c1_Master, speed, mode); //I2C1 Config
 }
+#endif //I2C_1_SLAVE_ENABLE
 #endif
 
 /*******************************************************************************
@@ -170,6 +264,12 @@ static void Main_I2CnIRQHandler(I2C_Type *pI2Cx) {
 		HAL_I2C_ClearSclLowTimeoutFlag(pI2Cx); // Clear SCL Low Time-out
 		complete = TRUE; //KMS241125_3 : Added code to break out of the infinite loop. But Need to check this code later !!!
 	}
+#endif
+#ifdef I2C_1_SLAVE_ENABLE
+	if(pI2Cx == I2C1)
+		isMasterMode = FALSE;
+	else
+		isMasterMode = TRUE;
 #endif
 	if (isMasterMode) { // Master Mode
 		HAL_I2C_Interrupt_MasterHandler(pI2Cx);
@@ -226,7 +326,11 @@ void I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, u
 	int i = 0;
 
 #ifdef _I2C_DEBUG_MSG
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	if(num > I2C_1)
+#else
 	if(num == I2C_0)
+#endif
 		cprintf("%s_Interrupt_Write_Data_16bit_SubAdd\r\n", i2c0_Master->I2cName);
 	else
 		cprintf("%s_Interrupt_Write_Data_16bit_SubAdd\r\n", i2c1_Master->I2cName);
@@ -239,7 +343,11 @@ void I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, u
 		return;
 	}
 #ifdef I2C_MANUAL_BUS_CONTROL
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	if(num > I2C_1)
+#else
 	if(num == I2C_0)
+#endif
 	{
 		HAL_I2C_SetManualBus(i2c0_Master->pI2Cx, I2C_SCL, I2C_OUTPUT_LOW, ENABLE);
 		HAL_I2C_SetManualBus(i2c0_Master->pI2Cx, I2C_SCL, I2C_OUTPUT_HIGH_OPENDRAIN, ENABLE);
@@ -256,7 +364,11 @@ void I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, u
 #endif
 
 #ifdef SCL_TIMEOUT
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	if(num > I2C_1)
+#else
 	if(num == I2C_0)
+#endif
 		HAL_I2C_SetSclLowTimeout(i2c0_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); 
 	else
 		HAL_I2C_SetSclLowTimeout(i2c1_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); 
@@ -289,10 +401,25 @@ void I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, u
   	cputs("\r\n MASTER Write Test START\r\n");
 #endif
 
+
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4 : I2C_0 Switch Control //PE0/Pin32(I2C_SW_CNTL) : Output - High : I2C_0 can use DSP & Ext.A2B  / Low : I2C_0 can use ADC & DAC. 
+	if(num > I2C_1)
+	{
+		if(num == I2C_0_DSP)
+			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use DSP & Ext.A2B.
+		else
+			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use ADC & DAC.
+			
+		HAL_I2C_MasterTransmitData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+	}
+	else
+		HAL_I2C_MasterTransmitData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+#else
 	if(num == I2C_0)
 		HAL_I2C_MasterTransmitData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 	else
 		HAL_I2C_MasterTransmitData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+#endif
 	
     while(!complete);
 
@@ -317,7 +444,11 @@ void I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, ui
 	int i = 0;
 
 #ifdef _I2C_DEBUG_MSG
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	if(num > I2C_1)
+#else
 	if(num == I2C_0)
+#endif
 		cprintf("%s_Interrupt_Read_Data_16bit_SubAdd\r\n", i2c0_Master->I2cName);
 	else
 		cprintf("%s_Interrupt_Read_Data_16bit_SubAdd\r\n", i2c1_Master->I2cName);
@@ -332,7 +463,11 @@ void I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, ui
 	}
 
 #ifdef I2C_MANUAL_BUS_CONTROL
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	if(num > I2C_1)
+#else
 	if(num == I2C_0)
+#endif
 	{
 	    HAL_I2C_SetManualBus(i2c0_Master->pI2Cx, I2C_SCL, I2C_OUTPUT_LOW, ENABLE);
 	    HAL_I2C_SetManualBus(i2c0_Master->pI2Cx, I2C_SCL, I2C_OUTPUT_HIGH_OPENDRAIN, ENABLE);
@@ -349,7 +484,11 @@ void I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, ui
 #endif
 
 #ifdef SCL_TIMEOUT
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	if(num > I2C_1)
+#else
 	if(num == I2C_0)
+#endif
 		HAL_I2C_SetSclLowTimeout(i2c0_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); // SCL Low Time Period : (1/PCLK)*4*(SLTPDR+1) = (1/32MHz)*4*(0xFFFFFF+1)2.09s
 	else
 		HAL_I2C_SetSclLowTimeout(i2c1_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); // SCL Low Time Period : (1/PCLK)*4*(SLTPDR+1) = (1/32MHz)*4*(0xFFFFFF+1)2.09s
@@ -380,10 +519,24 @@ void I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, ui
   	cputs("\r\n MASTER Read Test START\r\n");
 #endif
 
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4 : I2C_0 Switch Control //PE0/Pin32(I2C_SW_CNTL) : Output - High : I2C_0 can use DSP & Ext.A2B  / Low : I2C_0 can use ADC & DAC. 
+	if(num > I2C_1)
+	{
+		if(num == I2C_0_DSP)
+			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use DSP & Ext.A2B.
+		else
+			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use ADC & DAC.
+			
+		HAL_I2C_MasterReceiveData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+	}
+	else
+		HAL_I2C_MasterReceiveData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+#else
 	if(num == I2C_0)
 		HAL_I2C_MasterReceiveData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 	else
 		HAL_I2C_MasterReceiveData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+#endif
 	
     while(!complete);
 	
@@ -408,7 +561,11 @@ void I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, u
 #endif
 
 #ifdef _I2C_DEBUG_MSG
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	if(num > I2C_1)
+#else
 	if(num == I2C_0)
+#endif
 		cprintf("%s_Interrupt_Write_Data_8bit_SubAdd\r\n", i2c0_Master->I2cName);
 	else
 		cprintf("%s_Interrupt_Write_Data_8bit_SubAdd\r\n", i2c1_Master->I2cName);
@@ -423,7 +580,11 @@ void I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, u
 	}
 
 #ifdef SCL_TIMEOUT
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	if(num > I2C_1)
+#else
 	if(num == I2C_0)
+#endif
 		HAL_I2C_SetSclLowTimeout(i2c0_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); 
 	else
 		HAL_I2C_SetSclLowTimeout(i2c1_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); 
@@ -455,10 +616,24 @@ void I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, u
   	cputs("\r\n MASTER Write Test START\r\n");
 #endif
 
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4 : I2C_0 Switch Control //PE0/Pin32(I2C_SW_CNTL) : Output - High : I2C_0 can use DSP & Ext.A2B  / Low : I2C_0 can use ADC & DAC. 
+	if(num > I2C_1)
+	{
+		if(num == I2C_0_DSP)
+			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use DSP & Ext.A2B.
+		else
+			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use ADC & DAC.
+			
+		HAL_I2C_MasterTransmitData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+	}
+	else
+		HAL_I2C_MasterTransmitData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+#else
 	if(num == I2C_0)
 		HAL_I2C_MasterTransmitData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 	else
 		HAL_I2C_MasterTransmitData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+#endif
 	
     while(!complete);
 
@@ -474,7 +649,11 @@ void I2C_Interrupt_Read_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, ui
 	int i = 0;
 
 #ifdef _I2C_DEBUG_MSG
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	if(num > I2C_1)
+#else
 	if(num == I2C_0)
+#endif
 		cprintf("%s_Interrupt_Read_Data_8bit_SubAdd\r\n", i2c0_Master->I2cName);
 	else
 		cprintf("%s_Interrupt_Read_Data_8bit_SubAdd\r\n", i2c1_Master->I2cName);
@@ -489,7 +668,11 @@ void I2C_Interrupt_Read_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, ui
 	}
 
 #ifdef SCL_TIMEOUT
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	if(num > I2C_1)
+#else
 	if(num == I2C_0)
+#endif
 		HAL_I2C_SetSclLowTimeout(i2c0_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); // SCL Low Time Period : (1/PCLK)*4*(SLTPDR+1) = (1/32MHz)*4*(0xFFFFFF+1)2.09s
 	else
 		HAL_I2C_SetSclLowTimeout(i2c1_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); // SCL Low Time Period : (1/PCLK)*4*(SLTPDR+1) = (1/32MHz)*4*(0xFFFFFF+1)2.09s
@@ -516,10 +699,24 @@ void I2C_Interrupt_Read_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, ui
   	cputs("\r\n MASTER Read Test START\r\n");
 #endif
 
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4 : I2C_0 Switch Control //PE0/Pin32(I2C_SW_CNTL) : Output - High : I2C_0 can use DSP & Ext.A2B  / Low : I2C_0 can use ADC & DAC. 
+	if(num > I2C_1)
+	{
+		if(num == I2C_0_DSP)
+			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use DSP & Ext.A2B.
+		else
+			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use ADC & DAC.
+
+		HAL_I2C_MasterReceiveData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+	}
+	else
+		HAL_I2C_MasterReceiveData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+#else
 	if(num == I2C_0)
 		HAL_I2C_MasterReceiveData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 	else
 		HAL_I2C_MasterReceiveData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+#endif
 	
     while(!complete);
 	
@@ -552,7 +749,11 @@ void I2C_Interrupt_Write_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, ui
 	int i = 0;
 
 #ifdef _I2C_DEBUG_MSG
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	if(num > I2C_1)
+#else
 	if(num == I2C_0)
+#endif
 		cprintf("%s_Interrupt_Write_Data_8bit_SubAdd\r\n", i2c0_Master->I2cName);
 	else
 		cprintf("%s_Interrupt_Write_Data_8bit_SubAdd\r\n", i2c1_Master->I2cName);
@@ -565,7 +766,11 @@ void I2C_Interrupt_Write_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, ui
 		return;
 	}
 #ifdef I2C_MANUAL_BUS_CONTROL
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	if(num > I2C_1)
+#else
 	if(num == I2C_0)
+#endif
 	{
 	    HAL_I2C_SetManualBus(i2c0_Master->pI2Cx, I2C_SCL, I2C_OUTPUT_LOW, ENABLE);
 	    HAL_I2C_SetManualBus(i2c0_Master->pI2Cx, I2C_SCL, I2C_OUTPUT_HIGH_OPENDRAIN, ENABLE);
@@ -582,7 +787,11 @@ void I2C_Interrupt_Write_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, ui
 #endif
 
 #ifdef SCL_TIMEOUT
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	if(num > I2C_1)
+#else
 	if(num == I2C_0)
+#endif
 		HAL_I2C_SetSclLowTimeout(i2c0_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); // SCL Low Time Period : (1/PCLK)*4*(SLTPDR+1) = (1/32MHz)*4*(0xFFFFFF+1)2.09s
 	else
 		HAL_I2C_SetSclLowTimeout(i2c1_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); 
@@ -614,11 +823,25 @@ void I2C_Interrupt_Write_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, ui
   	cputs("\r\n MASTER Write Test START\r\n");
 #endif
 
-	if(num ==I2C_0)
-    	HAL_I2C_MasterTransmitData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4 : I2C_0 Switch Control //PE0/Pin32(I2C_SW_CNTL) : Output - High : I2C_0 can use DSP & Ext.A2B  / Low : I2C_0 can use ADC & DAC. 
+	if(num > I2C_1)
+	{
+		if(num == I2C_0_DSP)
+			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use DSP & Ext.A2B.
+		else
+			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use ADC & DAC.
+			
+		HAL_I2C_MasterTransmitData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+	}
 	else
 		HAL_I2C_MasterTransmitData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
-	
+#else
+	if(num == I2C_0)
+    	        HAL_I2C_MasterTransmitData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+	else
+		HAL_I2C_MasterTransmitData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+#endif
+
     while(!complete);
 
 #ifdef _I2C_DEBUG_MSG
@@ -641,7 +864,11 @@ void I2C_Interrupt_Read_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uin
 	int i = 0;
 
 #ifdef _I2C_DEBUG_MSG
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	if(num > I2C_1)
+#else
 	if(num == I2C_0)
+#endif
 		cprintf("%s_Interrupt_Read_Data_8bit_SubAdd\r\n", i2c0_Master->I2cName);
 	else
 		cprintf("%s_Interrupt_Read_Data_8bit_SubAdd\r\n", i2c1_Master->I2cName);
@@ -656,7 +883,11 @@ void I2C_Interrupt_Read_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uin
 	}
 
 #ifdef I2C_MANUAL_BUS_CONTROL
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	if(num > I2C_1)
+#else
 	if(num == I2C_0)
+#endif
 	{
 	    HAL_I2C_SetManualBus(i2c0_Master->pI2Cx, I2C_SCL, I2C_OUTPUT_LOW, ENABLE);
 	    HAL_I2C_SetManualBus(i2c0_Master->pI2Cx, I2C_SCL, I2C_OUTPUT_HIGH_OPENDRAIN, ENABLE);
@@ -673,7 +904,11 @@ void I2C_Interrupt_Read_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uin
 #endif
 
 #ifdef SCL_TIMEOUT
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	if(num > I2C_1)
+#else
 	if(num == I2C_0)
+#endif
 		HAL_I2C_SetSclLowTimeout(i2c0_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); // SCL Low Time Period : (1/PCLK)*4*(SLTPDR+1) = (1/32MHz)*4*(0xFFFFFF+1)2.09s
 	else
 		HAL_I2C_SetSclLowTimeout(i2c1_Master->pI2Cx, ENABLE, ENABLE, 0x0000FF); // SCL Low Time Period : (1/PCLK)*4*(SLTPDR+1) = (1/32MHz)*4*(0xFFFFFF+1)2.09s
@@ -700,11 +935,25 @@ void I2C_Interrupt_Read_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uin
   	cputs("\r\n MASTER Read Test START\r\n");
 #endif
 
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4 : I2C_0 Switch Control //PE0/Pin32(I2C_SW_CNTL) : Output - High : I2C_0 can use DSP & Ext.A2B  / Low : I2C_0 can use ADC & DAC. 
+	if(num > I2C_1)
+	{
+		if(num == I2C_0_DSP)
+			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use DSP & Ext.A2B.
+		else
+			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use ADC & DAC.
+			
+		HAL_I2C_MasterReceiveData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+	}
+	else
+		HAL_I2C_MasterReceiveData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+#else
 	if(num == I2C_0)
 	    HAL_I2C_MasterReceiveData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 	else
 		HAL_I2C_MasterReceiveData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
-	
+#endif
+
     while(!complete);
 	
 #ifdef _I2C_DEBUG_MSG

@@ -17,8 +17,13 @@
 
 //KMS241213_1 //#define DEVICE_ADDR_		(0x39)
 
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4 : I2C_0 Switch Control //PE0/Pin32(I2C_SW_CNTL) : Output - High : I2C_0 can use DSP & Ext.A2B  / Low : I2C_0 can use ADC & DAC. 
+#define SIGMA_WRITE_REGISTER_BLOCK(deviceId, subAddr, dataSize, data) \
+	I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_0_CODEC, deviceId, subAddr, data, dataSize) //KMS241211_2
+#else //ESTEC_2ND_BOARD_SUPPORT
 #define SIGMA_WRITE_REGISTER_BLOCK(deviceId, subAddr, dataSize, data) \
     I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_1, deviceId, subAddr, data, dataSize) //KMS241211_2
+#endif //ESTEC_2ND_BOARD_SUPPORT
 
 //KMS241202_2 : To reduce RAM size, we need to modify original ADAU1761_init_Reg.h and ADAU1761.c like below.
 //1. In ADAU1761_init_Reg.h, we have to change define like the following 
@@ -30,7 +35,12 @@ void ADAU1761_Mute(Bool Mute_On) //KMS250106_2 : Made Mute function of ADAU1761
 	uint8_t array[1], Read[1];
 	int i;
 	uint8_t Address = 0;
-	
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4 : I2C_0 Switch Control //PE0/Pin32(I2C_SW_CNTL)
+	I2C_Port_No num = I2C_0_CODEC;
+#else
+	I2C_Port_No num = I2C_1;
+#endif
+
 	for(i=0;i<4;i++)
 	{
 		switch(i)
@@ -55,23 +65,23 @@ void ADAU1761_Mute(Bool Mute_On) //KMS250106_2 : Made Mute function of ADAU1761
 		if(Mute_On == TRUE)
 		{
 			Read[0] = 0;
-			I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_1, Address, 0x4023, Read, 1);
+			I2C_Interrupt_Read_Data_16bit_SubAdd(num, Address, 0x4023, Read, 1);
 			array[0] = Read[0] & (~0x02);
 			SIGMA_WRITE_REGISTER_BLOCK( Address, 0x4023, 1, array);
 			Read[0] = 0;
-			I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_1, Address, 0x4024, Read, 1);
+			I2C_Interrupt_Read_Data_16bit_SubAdd(num, Address, 0x4024, Read, 1);
 			array[0] = Read[0] & (~0x02);
 			SIGMA_WRITE_REGISTER_BLOCK( Address, 0x4024, 1, array);
 			Read[0] = 0;
-			I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_1, Address, 0x4025, Read, 1);
+			I2C_Interrupt_Read_Data_16bit_SubAdd(num, Address, 0x4025, Read, 1);
 			array[0] = Read[0] & (~0x02);
 			SIGMA_WRITE_REGISTER_BLOCK( Address, 0x4025, 1, array);
 			Read[0] = 0;
-			I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_1, Address, 0x4026, Read, 1);
+			I2C_Interrupt_Read_Data_16bit_SubAdd(num, Address, 0x4026, Read, 1);
 			array[0] = Read[0] & (~0x02);
 			SIGMA_WRITE_REGISTER_BLOCK( Address, 0x4026, 1, array);
 			Read[0] = 0;
-			I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_1, Address, 0x4026, Read, 1);
+			I2C_Interrupt_Read_Data_16bit_SubAdd(num, Address, 0x4026, Read, 1);
 			array[0] = Read[0] & (~0x10);
 			SIGMA_WRITE_REGISTER_BLOCK( Address, 0x4028, 1, array);
 		}

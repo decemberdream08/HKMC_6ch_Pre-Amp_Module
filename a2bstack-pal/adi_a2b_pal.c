@@ -251,9 +251,13 @@ a2b_HResult a2b_pal_I2cWriteFunc(a2b_Handle hnd,
 	//DevicdID : ecb->baseEcb.i2cMasterAddr = A2B_CONF_DEFAULT_MASTER_NODE_I2C_ADDR;
 #ifdef MCU_EVK_FUNCTION_TEST //KMS241211_2
 	I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_1, (uint8_t)addr,(uint8_t *)wBuf, nWrite); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
-#else
+#else //MCU_EVK_FUNCTION_TEST
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_0_DSP, (uint8_t)addr,(uint8_t *)wBuf, nWrite); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
+#else //ESTEC_2ND_BOARD_SUPPORT
 	I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_0, (uint8_t)addr,(uint8_t *)wBuf, nWrite); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
-#endif
+#endif //ESTEC_2ND_BOARD_SUPPORT
+#endif //MCU_EVK_FUNCTION_TEST
 
     return 0;
 }
@@ -286,7 +290,11 @@ a2b_HResult a2b_pal_I2cWriteReadFunc(a2b_Handle hnd,
 #ifdef MCU_EVK_FUNCTION_TEST //KMS241211_2	
 	I2C_Interrupt_Read_Data_A2B_8bit_Bus(I2C_1, (uint8_t)addr, (uint8_t *)wBuf, nWrite, (uint8_t *)rBuf, nRead); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
 #else
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
+	I2C_Interrupt_Read_Data_A2B_8bit_Bus(I2C_0_DSP, (uint8_t)addr, (uint8_t *)wBuf, nWrite, (uint8_t *)rBuf, nRead); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
+#else
 	I2C_Interrupt_Read_Data_A2B_8bit_Bus(I2C_0, (uint8_t)addr, (uint8_t *)wBuf, nWrite, (uint8_t *)rBuf, nRead); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
+#endif //ESTEC_2ND_BOARD_SUPPORT
 #endif
 
     return 0;

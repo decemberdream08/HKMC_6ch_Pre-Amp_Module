@@ -506,6 +506,11 @@
               <FileType>1</FileType>
               <FilePath>..\a2bapp.c</FilePath>
             </File>
+            <File>
+              <FileName>timer21.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\timer21.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -50,7 +50,7 @@
 //#define _TIMER1n
 
 /* TIMER2n ------------------------------- */
-#ifdef TIMER20_ENABLE
+#if defined(TIMER20_ENABLE) || defined(TIMER21_ENABLE)
 #define _TIMER2n //KMS241127_3
 #endif
 

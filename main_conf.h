@@ -50,18 +50,26 @@ extern "C"
 #define ESTEC_A2B_STACK_PORTING		(1) //KMS241129_4 : To merge A2B Stack, we use "ESTEC_A2B_STACK_PORTING" define.
 #ifdef ESTEC_A2B_STACK_PORTING
 #define A2B_STACK_CODE_FROM_ADI			(1) //KMS241211_1 : To make A2B Stack code as module code. So we can remove A2B Stack without disabling "A2B_STACK_CODE_FROM_ADI".
+#define A2B_SLAVE_DISCOVERY_WO_ID_VER		(1) //KMS250204_1 : Changed ESTec Board doesn't check Device ID and Version of Slave Node's A2B transceiver when ESTec Board works as A2B Master.
 #endif
 
 #define A2B_SLAVE_WORKING_SUPPORT_TMD8_32BIT			(1) //KMS250110_1 : To support TDM8 under A2B Slave mode like NE-N
 
 //Functions
 #define ESTEC_BOARD					(1)
+#define ESTEC_2ND_BOARD_SUPPORT		(1) //KMS250219_1 : To support ESTec 2nd Board which has I2C Slave and some additional GPIOs.
 #define I2C_0_ENABLE				(1) //Use I2C 0 for the communication with DSP/A2B Transceiver - PF6:SCL0, PF7:SDA0. If you don't use I2C0, please make sure to disable this macro !!!
 #define I2C_1_ENABLE				(1) //Use I2C 1 for the communication with ADC/DAC - PF0:SCL1, PF1:SDA1.
-#define TIMER20_COUNTER_ENABLE		(1) //Enable 100ms timer.
+#ifdef ESTEC_2ND_BOARD_SUPPORT
+#define I2C_1_SLAVE_ENABLE			(1) //I2C_1 : Work for Slave to control vitual Amp communicatoin reqested from Front two A2B Transceivers.
+#endif
+
 #define GPIO_ENABLE					(1) //KMS241125_5 : Added GPIO code.
 #define TIMER20_ENABLE				(1) //KMS241127_4 : Added TIMER20 code. This is timer for ACC OFF only.
 #define SYSTICK_TIMER_ENABLE		(1) //KMS241220_1 : Added SYSTEM TICK Timer instead of TIMER21.
+#ifdef ESTEC_2ND_BOARD_SUPPORT
+#define TIMER21_ENABLE				(1) //KMS250227_5 : Added TIMER21 code. This is timer for OP_OUT_RELAY_CNTRL only.
+#endif
 
 //Pheriperal Devices
 #define ADAU1452_ENABLE				(1) //KMS241126_1 : Added ADAU1452(DSP) code //I2C_0
@@ -84,11 +92,17 @@ extern "C"
 #ifdef I2C_0_ENABLE
 //#define _I2C_DEBUG_MSG		(1) //Debug message for I2C especially ADAU1452
 #endif
+#ifdef I2C_1_SLAVE_ENABLE
+//#define _I2C_1_DEBUG_MSG		(1) //Debug message for I2C_1(I2C Slave)
+#endif
 #ifdef GPIO_ENABLE
 //#define GPIO_DEBUG_MSG			(1)  //Debug message for GPIO
 #endif //GPIO_DEBUG_MSG
 #ifdef TIMER20_ENABLE
 //#define TIMER20_DEBUG_MSG		(1) // Debug message for TIMER20
+#endif
+#ifdef TIMER21_ENABLE
+//#define TIMER21_DEBUG_MSG		(1) // Debug message for TIMER21
 #endif
 #ifdef DEEP_SLEEP_MODE_ENABLE
 //#define DEEP_SLEEP_MODE_DEBUG_MSG		(1) // Debug message for DEEP SLEEP MODE
@@ -123,6 +137,9 @@ extern void GPIOAB_IRQHandler_IT(void); //KMS24112_6 : External Interrupt Settin
 #endif
 #ifdef DEEP_SLEEP_MODE_ENABLE
 extern Bool B_Deep_Sleep;
+#endif
+#if defined(TIMER21_ENABLE) && defined(ESTEC_2ND_BOARD_SUPPORT) //KMS250228_3
+extern Bool B_Mute_TimerOn;
 #endif
 #ifdef ESTEC_A2B_STACK_PORTING
 extern uint32_t MilliSec;

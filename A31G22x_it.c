@@ -117,7 +117,9 @@ void TIMER20_IRQHandler(void) {
 }
 
 void TIMER21_IRQHandler(void) {
-
+#ifdef TIMER21_ENABLE
+	TIMER21_IRQHandler_Interrupt();
+#endif
 }
 
 void TIMER30_IRQHandler(void) {

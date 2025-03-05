@@ -94,3 +94,18 @@
 ## 2025-01-20
   - Changed ADAU1452 init values due to A2B LR Swapping. But It'll be changed after HKMC defines A2B Audio source spec. Please refer to ADAU1452.c/ADAU_1452_Init_Reg.h.
   - Changed ADAU1452 init values due to Aux LR change issue. //KMS250120_1
+  
+## 2025-02-04
+  - Changed ESTec Board doesn't check Device ID and Version of Slave Node's A2B transceiver when ESTec Board works as A2B Master. But Need to Test !!!(NTD). //KMS250204_1
+  
+## 2025-02-27
+  - The PF3/Pin37(12V_CNTRL) is followed by LDO_CNTRL state. //KMS250227_1
+  - The PA6/Pin2(A2B_DIRECT) can decide whether A2B Master feature is supportted(Low) or not(High). - High : A2B Master feature disable / Low : A2B Master feature enable. //KMS250227_2
+  - The PE1/Pin31(MCLK_SW_CNTR) can choose XTAL-IN of DSP. - High : X-TAL(Aux Mode)  / Low : A2B Tranceiver's MCLK(A2B Mode) //KMS250227_3
+  - The PE0/Pin32(I2C_SW_CNTL) can control I2C switch for I2C_0. Output - High : I2C_0 can use DSP & Ext.A2B  / Low : I2C_0 can use ADC & DAC. //KMS250227_4
+  
+## 2025-02-28
+  - During Power-On, we don't need to initialize all peripherals especially in case of ACC-OFF. So, Changed SW. //KMS250228_1
+  - The PA0/Pin44(ACC_INT_MICOM) and PA4/Pin48(INPUT_CNTRL) is input and no need internal pull-up. //KMS250228_2
+  - Implemented Mute On/Off function. Especially, Mute Off is executed after 1 sec using timer. //KMS250228_3
+  - Implemented I2C Slave on I2C_1 Port with Polling way. //KMS250228_4

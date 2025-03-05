@@ -36,10 +36,19 @@ typedef enum {
     SLAVE = 1
 } I2Cn_Type;
 
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4 : To use I2C switch for I2C_0. 
+//PE0/Pin32(I2C_SW_CNTL) : Output : I2C_0 Switch Control. - High : I2C_0 can use DSP & Ext.A2B  / Low : I2C_0 can use ADC & DAC(CODECs).
+typedef enum {
+	I2C_1,
+	I2C_0_DSP, //PE0 - High : I2C_0 can use DSP & Ext.A2B
+	I2C_0_CODEC //PE0 - Low : I2C_0 can use ADC & DAC(CODECs).
+} I2C_Port_No;
+#else
 typedef enum {
 	I2C_0,
 	I2C_1
 } I2C_Port_No;
+#endif
 
 /*******************************************************************************
 * Private Variable
@@ -64,8 +73,14 @@ void I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, ui
 void I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, uint8_t *uData, uint16_t uDataSize); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
 void I2C_Interrupt_Read_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, uint8_t *uWData, uint16_t uWDataSize, uint8_t *uRData, uint16_t uRDataSize); //KMS241210_1 : To commnunicate with A2B Bus through I2C.
 
+#ifdef I2C_1_SLAVE_ENABLE //KMS250228_4
+void I2C_Configure(I2C_Port_No port, I2C_SPEED_STEP speed, I2Cn_Type mode);
+Bool Slave_Read_Buffer_Not_Empty(void);
+void Slave_Read_Init(void);
+#else
 //KMS241120_1 : Add new function and new defines
 void I2C_Configure(I2C_SPEED_STEP speed, I2Cn_Type mode); //Define I2C Speed and Master/Slave
+#endif
 #endif
 #endif
 /* --------------------------------- End Of File ------------------------------ */

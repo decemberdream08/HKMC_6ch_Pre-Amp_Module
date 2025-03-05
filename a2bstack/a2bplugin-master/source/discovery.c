@@ -4011,7 +4011,9 @@ a2b_dscvryNodeDiscovered
 	a2b_NodeSignature   nodeSig;
 	const bdd_Node      *bddNodeObj;
 	const bdd_Node      *bddMstrNodeObj;
+#ifndef A2B_SLAVE_DISCOVERY_WO_ID_VER	
 	a2b_Bool 			verifyNodeDescr;
+#endif
 	a2b_Bool 			bContinueDisc;
 	a2b_Bool 			isXTalkFixApplicable;
 
@@ -4213,6 +4215,7 @@ a2b_dscvryNodeDiscovered
             return A2B_FALSE;
         }
 
+#ifndef A2B_SLAVE_DISCOVERY_WO_ID_VER
 		/* Mandatory checking for AD2420 & AD2429 */
 		verifyNodeDescr = (a2b_Bool)bddNodeObj->verifyNodeDescr;
 
@@ -4248,7 +4251,7 @@ a2b_dscvryNodeDiscovered
             A2B_DSCVRY_SEQEND( plugin->ctx );
             return A2B_FALSE;
         }
-
+#endif
         nodeSig.hasI2cCapability = (a2b_Bool)((rBuf[3u] & A2B_BITM_CAPABILITY_I2CAVAIL) != 0u);
 
 		/* Custom Node Identification - Start */
