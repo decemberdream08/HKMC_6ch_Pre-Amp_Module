@@ -108,7 +108,7 @@
 //#define	USE_FULL_ASSERT
 
  /* DEBUG_FRAMWORK ---------------------------------------- */
-#define _DEBUG_MSG
+//#define _DEBUG_MSG
 
 #endif /* _A31G22x_LIBCFG_H_ */
 /* --------------------------------- End Of File ------------------------------ */

@@ -30,7 +30,8 @@
 
 /** Max buffer length */
 #define BUFFER_SIZE	(63) //KMS241125_2 Data Buffer Size (Excluded slave address byte size)
-#define LONG_BUFFER_SIZE (3958) //KMS241125_2 : This buffer size includes I2C sub-address also !!!
+//#define LONG_BUFFER_SIZE (3958) //KMS241125_2 : This buffer size includes I2C sub-address also !!!
+#define LONG_BUFFER_SIZE (1030) //KMS250314_2 : Max buffer size is defined by ADAU1452.c/ADAU1761.c and the size is 1020.
 
 /** Max I2C Channel Number */
 #define I2C_IP_INDEX_MAX			(3)
@@ -133,6 +134,7 @@ Bool Slave_Read_Buffer_Not_Empty(void)
 #ifdef _I2C_1_DEBUG_MSG
 	uint8_t i;
 #endif
+	Bool B_Ret = FALSE;
 
 	if(SlaveReadBuffer[0])
 	{
@@ -140,13 +142,20 @@ Bool Slave_Read_Buffer_Not_Empty(void)
 		for(i=0;i<5;i++)
 			cprintf("0x%02x ", SlaveReadBuffer[i]);
 #endif
+		if(SlaveReadBuffer[0] == 0xD4) //KMS250306_3 : Just check wheter A2B Receiver get Amp data from A2B Master.  More condition : //&& SlaveReadBuffer[1] == 0x05 && SlaveReadBuffer[2] == 0xFF
+			B_Ret = TRUE;
+		else
+			B_Ret = FALSE;
+		
 		Slave_Read_Init();
-
-		return TRUE;
+		
+		return B_Ret;
 	}
 	else
 	{
-		return FALSE;
+		B_Ret = FALSE;
+		
+		return B_Ret;
 	}
 }
 
@@ -312,7 +321,7 @@ void I2C2_SPI20_IRQHandler_MasterInterrupt(void) {
 
 
 /**********************************************************************
- * @brief		I2C_Interrupt_Write_Data
+ * @brief		I2C_Interrupt_Write_Data for ADAU1452 & ADAU1761
  * @param[in]	uDeviceId : I2C Device Address
  *				uSubAddr_16bit : I2C Sub Address(Register Address)
  *				*uData : Pointer of write data
@@ -406,9 +415,19 @@ void I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, u
 	if(num > I2C_1)
 	{
 		if(num == I2C_0_DSP)
-			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use DSP & Ext.A2B.
+		{
+#ifdef _I2C_DEBUG_MSG		
+			cputs("\n\r### I2C_0_DSP - 1");
+#endif
+			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use DSP & Ext.A2B.
+		}
 		else
-			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use ADC & DAC.
+		{
+#ifdef _I2C_DEBUG_MSG				
+			cputs("\n\r### I2C_0_DAC - 1");
+#endif
+			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use ADC & DAC.
+		}
 			
 		HAL_I2C_MasterTransmitData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 	}
@@ -429,7 +448,7 @@ void I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, u
 }
 
 /**********************************************************************
- * @brief		I2C_Interrupt_Read_Data
+ * @brief		I2C_Interrupt_Read_Data for ADAU1452 & ADAU1761
  * @param[in]	uDeviceId : I2C Device Address
  *				uSubAddr_16bit : I2C Sub Address(Register Address)
  *				*uData : Pointer of Read buffer
@@ -523,9 +542,19 @@ void I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, ui
 	if(num > I2C_1)
 	{
 		if(num == I2C_0_DSP)
-			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use DSP & Ext.A2B.
+		{
+#ifdef _I2C_DEBUG_MSG		
+			cputs("\n\r### I2C_0_DSP - 2");
+#endif
+			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use DSP & Ext.A2B.
+		}
 		else
-			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use ADC & DAC.
+		{
+#ifdef _I2C_DEBUG_MSG				
+			cputs("\n\r### I2C_0_DAC - 2");
+#endif
+			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use ADC & DAC.
+		}
 			
 		HAL_I2C_MasterReceiveData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 	}
@@ -553,6 +582,14 @@ void I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, ui
 	}
 }
 
+/**********************************************************************
+ * @brief		I2C_Interrupt_Write_Data_A2B_8bit_Bus for AD2428
+ * @param[in]	num : I2C Port number. 0 : I2C_0 / 1 : I2C_1
+ * 				uDeviceId : I2C Device Address
+ *				*uData : Pointer of write data(including I2C Sub Address(Register Address))
+ *				uDataSize : Size of write data
+ * @return 		None
+ **********************************************************************/
 void I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, uint8_t *uData, uint16_t uDataSize) //KMS241210_1 : To commnunicate with A2B Bus through I2C.
 {
 	I2C_M_SETUP_Type MasterCfg;
@@ -570,14 +607,6 @@ void I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, u
 	else
 		cprintf("%s_Interrupt_Write_Data_8bit_SubAdd\r\n", i2c1_Master->I2cName);
 #endif
-
-	if(uDataSize > LONG_BUFFER_SIZE)
-	{
-#ifdef _I2C_DEBUG_MSG
-		cputs("\r\n I2C_Interrupt_Write_Data_8bit_SubAdd() : Error !!!\r\n");
-#endif
-		return;
-	}
 
 #ifdef SCL_TIMEOUT
 #ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
@@ -620,9 +649,19 @@ void I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, u
 	if(num > I2C_1)
 	{
 		if(num == I2C_0_DSP)
-			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use DSP & Ext.A2B.
+		{
+#ifdef _I2C_DEBUG_MSG		
+			cputs("\n\r### I2C_0_DSP - 3");
+#endif
+			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use DSP & Ext.A2B.
+		}
 		else
-			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use ADC & DAC.
+		{
+#ifdef _I2C_DEBUG_MSG				
+			cputs("\n\r### I2C_0_DAC - 3");
+#endif
+			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use ADC & DAC.
+		}
 			
 		HAL_I2C_MasterTransmitData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 	}
@@ -642,6 +681,14 @@ void I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, u
 #endif
 }
 
+/**********************************************************************
+ * @brief		I2C_Interrupt_Write_Data_A2B_8bit_Bus for AD2428
+ * @param[in]	num : I2C Port number. 0 : I2C_0 / 1 : I2C_1
+ * 				uDeviceId : I2C Device Address
+ *				*uData : Pointer of write data(including I2C Sub Address(Register Address))
+ *				uDataSize : Size of write data
+ * @return 		None
+ **********************************************************************/
 void I2C_Interrupt_Read_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, uint8_t *uWData, uint16_t uWDataSize, uint8_t *uRData, uint16_t uRDataSize) //KMS241210_1 : To commnunicate with A2B Bus through I2C.
 {
 	uint8_t MasterReadBuffer[BUFFER_SIZE];
@@ -662,7 +709,7 @@ void I2C_Interrupt_Read_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, ui
 	if(uRDataSize > BUFFER_SIZE)
 	{
 #ifdef _I2C_DEBUG_MSG
-		cputs("\r\n I2C_Interrupt_Read_Data_8bit_SubAdd() : Error !!!\r\n");
+		cputs("\r\n I2C_Interrupt_Read_Data_A2B_8bit_Bus() : Error !!!\r\n");
 #endif
 		return;
 	}
@@ -703,10 +750,20 @@ void I2C_Interrupt_Read_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, ui
 	if(num > I2C_1)
 	{
 		if(num == I2C_0_DSP)
-			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use DSP & Ext.A2B.
+		{
+#ifdef _I2C_DEBUG_MSG		
+			cputs("\n\r### I2C_0_DSP - 4");
+#endif
+			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use DSP & Ext.A2B.
+		}
 		else
-			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use ADC & DAC.
-
+		{
+#ifdef _I2C_DEBUG_MSG				
+			cputs("\n\r### I2C_0_DAC - 4");
+#endif
+			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use ADC & DAC.
+		}
+			
 		HAL_I2C_MasterReceiveData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 	}
 	else
@@ -733,7 +790,7 @@ void I2C_Interrupt_Read_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, ui
 	}
 }
 
-
+#ifdef MCU_EVK_I2C_TEST
 /**********************************************************************
  * @brief		I2C_Interrupt_Write_Data
  * @param[in]	uDeviceId : I2C Device Address
@@ -827,9 +884,19 @@ void I2C_Interrupt_Write_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, ui
 	if(num > I2C_1)
 	{
 		if(num == I2C_0_DSP)
-			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use DSP & Ext.A2B.
+		{
+#ifdef _I2C_DEBUG_MSG		
+			cputs("\n\r### I2C_0_DSP - 5");
+#endif
+			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use DSP & Ext.A2B.
+		}
 		else
-			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use ADC & DAC.
+		{
+#ifdef _I2C_DEBUG_MSG				
+			cputs("\n\r### I2C_0_DAC - 5");
+#endif
+			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use ADC & DAC.
+		}
 			
 		HAL_I2C_MasterTransmitData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 	}
@@ -837,7 +904,7 @@ void I2C_Interrupt_Write_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, ui
 		HAL_I2C_MasterTransmitData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 #else
 	if(num == I2C_0)
-    	        HAL_I2C_MasterTransmitData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+		HAL_I2C_MasterTransmitData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 	else
 		HAL_I2C_MasterTransmitData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 #endif
@@ -939,9 +1006,19 @@ void I2C_Interrupt_Read_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uin
 	if(num > I2C_1)
 	{
 		if(num == I2C_0_DSP)
-			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use DSP & Ext.A2B.
+		{
+#ifdef _I2C_DEBUG_MSG		
+			cputs("\n\r### I2C_0_DSP - 6");
+#endif
+			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use DSP & Ext.A2B.
+		}
 		else
-			HAL_GPIO_ClearPin(PE, _BIT(0)); //Made PE0 to Low. I2C_0 can use ADC & DAC.
+		{
+#ifdef _I2C_DEBUG_MSG				
+			cputs("\n\r### I2C_0_DAC - 6");
+#endif
+			HAL_GPIO_SetPin(PE, _BIT(0)); //Made PE0 to High. I2C_0 can use ADC & DAC.
+		}
 			
 		HAL_I2C_MasterReceiveData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 	}
@@ -949,7 +1026,7 @@ void I2C_Interrupt_Read_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uin
 		HAL_I2C_MasterReceiveData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 #else
 	if(num == I2C_0)
-	    HAL_I2C_MasterReceiveData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
+		HAL_I2C_MasterReceiveData(i2c0_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 	else
 		HAL_I2C_MasterReceiveData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 #endif
@@ -968,7 +1045,7 @@ void I2C_Interrupt_Read_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uin
 #endif		
 	}
 }
-
+#endif //MCU_EVK_I2C_TEST
 
 /*********************************************************************//**
  * @brief		Initialize buffer

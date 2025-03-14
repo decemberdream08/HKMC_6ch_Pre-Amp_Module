@@ -109,3 +109,20 @@
   - The PA0/Pin44(ACC_INT_MICOM) and PA4/Pin48(INPUT_CNTRL) is input and no need internal pull-up. //KMS250228_2
   - Implemented Mute On/Off function. Especially, Mute Off is executed after 1 sec using timer. //KMS250228_3
   - Implemented I2C Slave on I2C_1 Port with Polling way. //KMS250228_4
+  
+## 2025-03-05
+  - Under A2B Mode, DSP uses A2B Receiver's MCLK of as X-TAL In of DSP and Under Aux Mode, DSP uses X-TAL as X-TAL In of DSP. //KMS250305_1
+  - Under A2B Mode, Power should be supplied at first time. //KMS250305_2
+
+## 2025-03-06
+  - Added delay due to GPIO read error under MCU On start. //KMS250306_1
+  - Deleted codes which is related Slave interrupt stop because we need to get continueous message from I2C Master. //KMS250306_2
+  - Just check wheter A2B Receiver get Amp data from A2B Master. //KMS250306_3
+  
+## 2025-03-07
+  - Made PF2 to Low(Mute) during initailizing. //KMS250307_1
+  
+## 2025-03-14
+  - To use A2B Bus as Master, we can define Master AD2428 I2C address with (0x68). Now it's 0x68. //KMS250314_1
+  - Max buffer size is defined by ADAU1452.c/ADAU1761.c and the size is 1020. //KMS250314_2
+  - To support HMC Master A2B Board which checks TI AMP and we already implemented TI AMP response using I2C Slave(I2C_1). Please refer to "HMC_A2B_MASTER_BOARD_SUPPORT" macro. //KMS250314_3

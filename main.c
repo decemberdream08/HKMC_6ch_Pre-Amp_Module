@@ -57,7 +57,24 @@ a2b_App_t gApp_Info;
 static uint32_t SysTick_1ms_count = 0, SysTick_100ms_count = 0, SysTick_500ms_count = 0, SysTick_1s_count = 0;
 #endif
 
+#ifdef ESTEC_2ND_BOARD_SUPPORT
+#ifdef ESTEC_A2B_STACK_PORTING
+a2b_UInt32 nResult = 0;
+#endif
+Bool B_A2B_Master_Support = FALSE; //KMS250227_2 : To enable A2B Master Mode
+#endif
+
 /* Private define ------------------------------------------------------------*/
+typedef enum {
+	INPUT_MODE_A2B,
+	INPUT_MODE_AUX
+} INPUT_MODE;
+
+typedef enum {
+	MUTE_OFF_STATE,
+	MUTE_ON_STATE
+} MUTE_STATE;
+
 /* Private function prototypes -----------------------------------------------*/
 void DEBUG_MenuPrint(void);
 #ifdef MCU_EVK_FUNCTION_TEST
@@ -66,14 +83,15 @@ void MCU_EVK_Function_Test(void);
 #ifdef GPIO_ENABLE
 #ifdef ESTEC_2ND_BOARD_SUPPORT
 Bool A2B_Direct_State(void); //KMS250227_2 : //PA6/Pin2(A2B_DIRECT) - High : A2B Master feature disable / Low : A2B Master feature enable
-void Mute_Relay_Control(Bool B_Mute_On); //KMS250228_3 : Mute On/Off function.
+void Mute_Relay_Control(MUTE_STATE B_Mute_On); //KMS250228_3 : Mute On/Off function.
 #endif
-Bool Input_Source_State(void); //KMS241213_2 : Added new function to check current input source whether A2B or Aux
-void Input_Source_Control(Bool B_A2B_Mode); //KMS241213_2 : To inform current mode(A2B or Aux) to DSP using PA3
+INPUT_MODE Input_Source_State(void); //KMS241213_2 : Added new function to check current input source whether A2B or Aux
+void Input_Source_Control(INPUT_MODE B_A2B_Mode); //KMS241213_2 : To inform current mode(A2B or Aux) to DSP using PA3
 
 Bool ACC_On_State(void); //KMS241129_1 : ACC ON/OFF status check functtion
 void EXTI_PortA_Configure(void); //KMS24112_6 : External Interrupt Setting for PA0
 void GPIO_Configure(void);
+void Power_Control(void); //KMS241127_2 : ACC ON/OFF contorl functtion
 #endif
 #ifdef DEEP_SLEEP_MODE_ENABLE
 void DEEP_SLEEP_EXIT_Configure(void);
@@ -81,6 +99,10 @@ void DEEP_SLEEP_EXIT_Configure(void);
 #ifdef SYSTICK_TIMER_ENABLE
 void SysTick_Configure(void);
 #endif
+#ifdef ESTEC_2ND_BOARD_SUPPORT
+void Init_Board(void);
+#endif
+
 void mainloop(void);
 int main (void);
 
@@ -96,12 +118,120 @@ static const char Menu[] =
 "\t - Core: ARM Cortex-M0+ \n\r"
 "\t - Communicate via: USART10 - 38400 bps \n\r"
 "\t - I2C Master Interrupt Test \n\r"
-"\t - 2025/01/24 - PM \n\r"
+"\t - 2025/03/14 - PM \n\r"
 "************************************************\n\r";
 #endif
 
 /* Public Function ------------------------------------------------------------*/
 extern void Main_TestI2CMasterInterrupt(void);
+
+#ifdef ESTEC_2ND_BOARD_SUPPORT
+void Init_Board(void)
+{
+#ifdef GPIO_DEBUG_MSG
+	cputs("\n\rACC_ON is detected on MCU restart");
+#endif
+	B_Need_ACC_On = TRUE;
+
+	
+#ifdef GPIO_ENABLE //KMS241219_1 : Need to move here because power should be supplied before DSP/Audio Codec init.
+	Power_Control(); //KMS241127_2 : Power Control is executed here.
+#endif
+/*
+	}
+#endif */ //KMS250228_1 : During Power-On, we don't need to initialize all peripherals. So, this statement is moved below.
+#if defined(I2C_0_ENABLE) || defined(I2C_1_ENABLE) //KMS241224_1 : I2C I/F Init is moved after Power_Control() due to DSP Init problem and added delay 500ms.
+	delay_ms(1000); //Tested with 3sec delay
+	//NTA : MCLK SW CNTR Pin Control
+#ifdef MCU_RESET_AFTER_WAKE_UP
+	if(ACC_On_State() == TRUE)
+
+#endif
+
+	delay_ms(500); //KMS250106_1 : Changed timing from 100ms to 500ms due to ADAU1452 Init failure.
+#ifdef I2C_1_SLAVE_ENABLE //KMS250228_4		
+	I2C_Configure(I2C_0_DSP, I2C_SPEED_400K, MASTER); //Define I2C Speed and Master/Slave. //KMS241206_1 : A2B I2C speed is fixed 400K in A2B and MCU both sides.
+	//I2C_Configure(I2C_1, I2C_SPEED_400K, SLAVE);
+#else
+	I2C_Configure(I2C_SPEED_400K, MASTER); //Define I2C Speed and Master/Slave. //KMS241206_1 : A2B I2C speed is fixed 400K in A2B and MCU both sides.
+#endif
+#endif
+
+#ifdef GPIO_ENABLE //KMS241213_2
+	//KMS241213_3 : Just check one time upon power on if "INTPUT_SOURCE_SELECTION_UPON_POWER_ON" is defined but it checks current status with intterrupt and upon Power On if "INTPUT_SOURCE_SELECTION_UPON_POWER_ON" is not defined
+	if(Input_Source_State() == INPUT_MODE_A2B)
+	{
+#ifdef GPIO_DEBUG_MSG
+		cputs("\n\rInput Source is A2B Mode upon Power On !!!");
+#endif
+		Input_Source_Control(INPUT_MODE_A2B); //KMS241223_1 : Changed sending data state for DSP.
+	}
+	else
+	{
+#ifdef GPIO_DEBUG_MSG
+		cputs("\n\rInput Source is Aux Mode upon Power On !!!");
+#endif
+		Input_Source_Control(INPUT_MODE_AUX); //KMS241223_1 : Changed sending data state for DSP.
+	}
+#endif //GPIO_ENABLE
+
+//KMS241219_1
+#ifdef ADAU1452_ENABLE
+	ADAU1452_Init(); //DSP Init
+#endif
+#ifdef ADAU1761_ENABLE
+	ADAU1761_Init(); //Audio Codec Init
+#endif
+#ifdef MCU_EVK_FUNCTION_TEST
+	MCU_EVK_Function_Test();
+#endif
+
+#ifdef ESTEC_A2B_STACK_PORTING
+	/* system/platform specific initialization */
+	//nResult = adi_a2b_SystemInit();
+	
+	if(nResult != 0)
+	{
+		//assert(nResult == 0);
+	}
+
+	/* A2B Network Setup. Performs discovery and configuration of A2B nodes and its peripherals */
+#ifndef A2B_SLAVE_EXTENSION_SUPPORT_TEST
+#ifdef ESTEC_2ND_BOARD_SUPPORT
+	if (A2B_Direct_State() == FALSE) //KMS250227_2 : //PA6/Pin2(A2B_DIRECT) - High : A2B Master feature disable / Low : A2B Master feature enable
+	{
+#ifdef _DEBUG_MSG
+		cputs("\n\rA2B_Master_Support !!!");
+#endif
+		B_A2B_Master_Support = TRUE;
+		nResult = a2b_setup(&gApp_Info);
+	}
+	else
+	{
+#ifdef _DEBUG_MSG
+		cputs("\n\rA2B_Master_No_Support !!!");
+#endif
+		B_A2B_Master_Support = FALSE;
+	}
+#else //ESTEC_2ND_BOARD_SUPPORT
+	nResult = a2b_setup(&gApp_Info);
+#endif //ESTEC_2ND_BOARD_SUPPORT
+#endif //A2B_SLAVE_EXTENSION_SUPPORT_TEST
+	if (nResult)
+	{
+		/* failed to setup A2B network */
+		//assert(nResult == 0);
+	}
+#endif
+
+#ifdef _DEBUG_MSG
+	cputs("\n\rInit Done !!!");
+#endif
+#if defined(ESTEC_2ND_BOARD_SUPPORT) && defined(TIMER21_ENABLE)
+	TIMER21_Interrupt_Mode_Run(TRUE); //KMS250228_3 : Mute Off execution after 1 sec using timer.
+#endif
+}
+#endif
 
 /**********************************************************************
  * @brief		 menu Print
@@ -273,14 +403,14 @@ Bool A2B_Direct_State(void) //KMS250227_2 : //PA6/Pin2(A2B_DIRECT) - High : A2B 
  * @return 		TRUE : A2B Mode
  *				FALSE : Aux Mode
  **********************************************************************/
-Bool Input_Source_State(void) //KMS241213_2 : Added new function to check current input source whether A2B or Aux //PA4
+INPUT_MODE Input_Source_State(void) //KMS241213_2 : Added new function to check current input source whether A2B or Aux //PA4
 {
-	Bool B_A2B_On;
+	INPUT_MODE B_A2B_On;
 	
 	if(HAL_GPIO_ReadPin(PA) & _BIT(4)) //PA4
-		B_A2B_On = TRUE; //A2B Mode
+		B_A2B_On = INPUT_MODE_A2B; //TRUE; //A2B Mode
 	else
-		B_A2B_On = FALSE; //Aux Mode
+		B_A2B_On = INPUT_MODE_AUX; //FALSE; //Aux Mode
 
 	return B_A2B_On;
 }
@@ -288,12 +418,12 @@ Bool Input_Source_State(void) //KMS241213_2 : Added new function to check curren
 /**********************************************************************
  * @brief		Input_Source_Control
  * @param[in]	B_Aux_Mode
- * @return 		TRUE : Aux Mode
- *				FALSE : A2B Mode
+ * @return 		INPUT_MODE_AUX(TRUE) : Aux Mode
+ *				INPUT_MODE_AUX(FALSE) : A2B Mode
  **********************************************************************/
-void Input_Source_Control(Bool B_Aux_Mode) //KMS241223_1 //KMS241213_2 : To inform current mode(A2B or Aux) to DSP using PA3
+void Input_Source_Control(INPUT_MODE B_Aux_Mode) //KMS241223_1 //KMS241213_2 : To inform current mode(A2B or Aux) to DSP using PA3
 {
-	if(B_Aux_Mode == TRUE)
+	if(B_Aux_Mode == INPUT_MODE_AUX) //TRUE
 	{
 #ifdef GPIO_DEBUG_MSG
 		cputs("\n\rSet PA3 !!!");
@@ -311,26 +441,26 @@ void Input_Source_Control(Bool B_Aux_Mode) //KMS241223_1 //KMS241213_2 : To info
 
 #if defined(TIMER21_ENABLE) && defined(ESTEC_2ND_BOARD_SUPPORT) //KMS250228_3 : Mute On/Off function.
 /**********************************************************************
- * @brief		Input_Source_Control
+ * @brief		Mute_Relay_Control
  * @param[in]	B_Aux_Mode
- * @return 		TRUE : Mute On
- *				FALSE : Mute Off
+ * @return 		MUTE_ON_STATE(TRUE) : Mute On
+ *				MUTE_OFF_STATE(FALSE) : Mute Off
  **********************************************************************/
- void Mute_Relay_Control(Bool B_Mute_On)
+ void Mute_Relay_Control(MUTE_STATE B_Mute_On)
 {
-	if(B_Mute_On == TRUE)
+	if(B_Mute_On ==MUTE_ON_STATE)// TRUE
 	{
 #ifdef GPIO_DEBUG_MSG
 		cputs("\n\rSet PF2/Mute On !!!");
 #endif
-		HAL_GPIO_SetPin((PORT_Type *)PF, _BIT(2)); //Made PF2 to High //Mute On
+		HAL_GPIO_ClearPin((PORT_Type *)PF, _BIT(2)); //Made PF2 to Low //Mute On
 	}
 	else
 	{
 #ifdef GPIO_DEBUG_MSG
 		cputs("\n\rClear PF2/Mute Off !!!");
 #endif
-		HAL_GPIO_ClearPin((PORT_Type *)PF, _BIT(2)); //Made PF2 to Low //Mute Off
+		HAL_GPIO_SetPin((PORT_Type *)PF, _BIT(2)); //Made PF2 to High //Mute Off
 	}
 }
 #endif
@@ -385,7 +515,7 @@ void Power_Control(void) //KMS241127_2 : ACC ON/OFF contorl functtion
 #endif
 		HAL_GPIO_ClearPin(PA, _BIT(1)); //Made PA1 to Low
 #if defined(TIMER21_ENABLE) && defined(ESTEC_2ND_BOARD_SUPPORT)
-		Mute_Relay_Control(TRUE); //KMS250228_3 : Mute On
+		Mute_Relay_Control(MUTE_ON_STATE); //KMS250228_3 : Mute On
 #endif
 	}
 	else
@@ -443,12 +573,12 @@ void GPIOAB_IRQHandler_IT(void) //KMS24112_6 : External Interrupt Setting for PA
 		clear_bit = status & 0x00000300;
 		HAL_GPIO_EXTI_ClearPin(PA, status&clear_bit);
 		
-		if(Input_Source_State() == TRUE) //PA4 - A2B Mode
+		if(Input_Source_State() == INPUT_MODE_A2B) //PA4 - A2B Mode
 		{
 #ifdef GPIO_DEBUG_MSG
 			cputs("\n\rPA4 GPIO High - Input source A2B");
 #endif
-			Input_Source_Control(FALSE); //KMS241223_1 : Changed sending data state for DSP.
+			Input_Source_Control(INPUT_MODE_A2B); //FALSE //KMS241223_1 : Changed sending data state for DSP.
 #ifdef ESTEC_2ND_BOARD_SUPPORT
 			HAL_GPIO_ClearPin(PE, _BIT(1)); //KMS250227_3 : Made PE1 to Low(XTAL-IN of DSP is connected with A2B Tranceiver's MCLK(A2B Mode))
 #endif
@@ -458,7 +588,7 @@ void GPIOAB_IRQHandler_IT(void) //KMS24112_6 : External Interrupt Setting for PA
 #ifdef GPIO_DEBUG_MSG
 			cputs("\n\rPA4 GPIO Low - Input source Aux");
 #endif
-			Input_Source_Control(TRUE); //KMS241223_1 : Changed sending data state for DSP.
+			Input_Source_Control(INPUT_MODE_AUX); //TRUE //KMS241223_1 : Changed sending data state for DSP.
 #ifdef ESTEC_2ND_BOARD_SUPPORT
 			HAL_GPIO_SetPin(PE, _BIT(1)); //KMS250227_3 : Made PE1 to High(XTAL-IN of DSP is connected with X-TAL(Aux Mode))
 #endif
@@ -542,7 +672,7 @@ void GPIO_Configure(void) //KMS241126_3 : Added GPIO configuration function.
 	//MUTE control using relay. - High : Mute / Low : Mute Off
 	HAL_GPIO_ConfigOutput((PORT_Type *)PF, 2, PCU_MODE_PUSH_PULL);
 	HAL_GPIO_ConfigPullup((PORT_Type *)PF, 2, PCU_PUPD_PULL_UP); //The schematic doesn't have any external pull-up.
-	HAL_GPIO_SetPin((PORT_Type *)PF, _BIT(2)); //Made PF2 to High(Mute) during initailizing
+	HAL_GPIO_ClearPin((PORT_Type *)PF, _BIT(2)); //KMS250307_1 : Made PF2 to Low(Mute) during initailizing
 
 	//PE0/Pin32(I2C_SW_CNTL) : Output : I2C_0 Switch Control. - High : I2C_0 can use DSP & Ext.A2B(I2C_0_DSP)  / Low : I2C_0 can use ADC & DAC(I2C_0_CODEC). 
 	HAL_GPIO_ConfigOutput(PE, 0, PCU_MODE_PUSH_PULL);
@@ -602,14 +732,17 @@ void GPIO_Configure(void) //KMS241126_3 : Added GPIO configuration function.
  **********************************************************************/
 void mainloop(void)
 {
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250305_1
+	Bool B_Need_Init_Board = FALSE;
+	Bool B_A2B_COM_Complete = FALSE;
+	//uint32_t SysTick_100ms_count_check = 0;
+#else //ESTEC_2ND_BOARD_SUPPORT
 #ifdef ESTEC_A2B_STACK_PORTING
 	a2b_UInt32 nResult = 0;
 #endif
+#endif //ESTEC_2ND_BOARD_SUPPORT
 #ifdef ADAU1452_DUMP //KMS250113_1 : Added Dump code for ADAU1452 registers.
 	int32_t count = 0;
-#endif
-#ifdef ESTEC_2ND_BOARD_SUPPORT
-	Bool B_A2B_Master_Support; //KMS250227_2 : To enable A2B Master Mode
 #endif
 
 	/*Configure menu prinf*/
@@ -643,8 +776,40 @@ void mainloop(void)
 //KMS241219_1 : Need to move here because power should be supplied before DSP/Audio Codec init.
 #ifdef MCU_RESET_AFTER_WAKE_UP//KMS241129_1 : After MCU reset from wake-up, it need to set ACC_ON status in here. 
 	//Becuase MCU interrupt pin has internal pull-up that's why MCU can't detect ACC_ON status on MCU reset.
+
+	delay_ms(100); //KMS250306_1 : Added delay due to GPIO read error.
+	
 	if(ACC_On_State() == TRUE)
 	{
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250305_1
+		if(Input_Source_State() == INPUT_MODE_AUX)
+		{
+#ifdef GPIO_DEBUG_MSG
+			cputs("\n\rXTAL-IN of DSP is connected with X-TAL(AUX Mode)");
+#endif
+			HAL_GPIO_SetPin(PE, _BIT(1)); //KMS250305_1 : Made PE1 to High(XTAL-IN of DSP is connected with X-TAL(AUX Mode))
+			Init_Board();
+		}
+		else //A2B Mode
+		{
+#ifdef GPIO_DEBUG_MSG
+			cputs("\n\rXTAL-IN of DSP is connected with A2B Tranceiver's MCLK(A2B Mode)");
+#endif
+			HAL_GPIO_ClearPin(PE, _BIT(1)); //KMS250305_1 : Made PE1 to Low(XTAL-IN of DSP is connected with A2B Tranceiver's MCLK(A2B Mode))
+			B_Need_Init_Board = TRUE;
+			
+			B_Need_ACC_On = TRUE; //KMS250305_2 : Under A2B Mode, Power should be supplied at first time.
+			Power_Control(); //KMS250305_2
+			
+#ifdef I2C_1_SLAVE_ENABLE //KMS250228_4		
+			//I2C_Configure(I2C_0_DSP, I2C_SPEED_400K, MASTER); //Define I2C Speed and Master/Slave. //KMS241206_1 : A2B I2C speed is fixed 400K in A2B and MCU both sides.
+			I2C_Configure(I2C_1, I2C_SPEED_400K, SLAVE); //Define I2C Speed and Master/Slave. //KMS241206_1 : A2B I2C speed is fixed 400K in A2B and MCU both sides.
+#else
+			I2C_Configure(I2C_SPEED_400K, MASTER); //Define I2C Speed and Master/Slave. //KMS241206_1 : A2B I2C speed is fixed 400K in A2B and MCU both sides.
+#endif
+			//SysTick_100ms_count_check = SysTick_100ms_count;
+		}
+#else //ESTEC_2ND_BOARD_SUPPORT
 #ifdef GPIO_DEBUG_MSG
 		cputs("\n\rACC_ON is detected on MCU restart");
 #endif
@@ -656,7 +821,7 @@ void mainloop(void)
 #endif
 	/*
 		}
-#endif */ //KMS250228_1 : During Power-On, we don't need to initialize all peripherals. So, this statement is moved below.
+ */ //KMS250228_1 : During Power-On, we don't need to initialize all peripherals. So, this statement is moved below.
 #if defined(I2C_0_ENABLE) || defined(I2C_1_ENABLE) //KMS241224_1 : I2C I/F Init is moved after Power_Control() due to DSP Init problem and added delay 500ms.
 		delay_ms(1000); //Tested with 3sec delay
 		//NTA : MCLK SW CNTR Pin Control
@@ -676,30 +841,29 @@ void mainloop(void)
 
 #ifdef GPIO_ENABLE //KMS241213_2
 		//KMS241213_3 : Just check one time upon power on if "INTPUT_SOURCE_SELECTION_UPON_POWER_ON" is defined but it checks current status with intterrupt and upon Power On if "INTPUT_SOURCE_SELECTION_UPON_POWER_ON" is not defined
-		if(Input_Source_State() == TRUE)
+		if(Input_Source_State() == INPUT_MODE_A2B)
 		{
 #ifdef GPIO_DEBUG_MSG
 			cputs("\n\rInput Source is A2B Mode upon Power On !!!");
 #endif
-			Input_Source_Control(FALSE); //KMS241223_1 : Changed sending data state for DSP.
+			Input_Source_Control(INPUT_MODE_A2B); //FALSE //KMS241223_1 : Changed sending data state for DSP.
 		}
 		else
 		{
 #ifdef GPIO_DEBUG_MSG
 			cputs("\n\rInput Source is Aux Mode upon Power On !!!");
 #endif
-			Input_Source_Control(TRUE); //KMS241223_1 : Changed sending data state for DSP.
+			Input_Source_Control(INPUT_MODE_AUX); //TRUE //KMS241223_1 : Changed sending data state for DSP.
 		}
 #endif //GPIO_ENABLE
 
-	//KMS241219_1
 #ifdef ADAU1452_ENABLE
 		ADAU1452_Init(); //DSP Init
 #endif
 #ifdef ADAU1761_ENABLE
 		ADAU1761_Init(); //Audio Codec Init
 #endif
-#if 0//def MCU_EVK_FUNCTION_TEST
+#ifdef MCU_EVK_FUNCTION_TEST
 		MCU_EVK_Function_Test();
 #endif
 
@@ -714,26 +878,14 @@ void mainloop(void)
 
 		/* A2B Network Setup. Performs discovery and configuration of A2B nodes and its peripherals */
 #ifndef A2B_SLAVE_EXTENSION_SUPPORT_TEST
-#ifdef ESTEC_2ND_BOARD_SUPPORT
-		if (A2B_Direct_State() == FALSE) //KMS250227_2 : //PA6/Pin2(A2B_DIRECT) - High : A2B Master feature disable / Low : A2B Master feature enable
-		{
-			B_A2B_Master_Support = TRUE;
-			nResult = a2b_setup(&gApp_Info);
-		}
-		else
-		{
-			B_A2B_Master_Support = FALSE;
-		}
-#else //ESTEC_2ND_BOARD_SUPPORT
 		nResult = a2b_setup(&gApp_Info);
-#endif //ESTEC_2ND_BOARD_SUPPORT
 #endif //A2B_SLAVE_EXTENSION_SUPPORT_TEST
 		if (nResult)
 		{
 			/* failed to setup A2B network */
 			//assert(nResult == 0);
 		}
-#endif
+#endif //ESTEC_A2B_STACK_PORTING
 
 #ifdef _DEBUG_MSG
 		cputs("\n\rInit Done !!!");
@@ -741,6 +893,7 @@ void mainloop(void)
 #if defined(ESTEC_2ND_BOARD_SUPPORT) && defined(TIMER21_ENABLE)
 		TIMER21_Interrupt_Mode_Run(TRUE); //KMS250228_3 : Mute Off execution after 1 sec using timer.
 #endif
+#endif //ESTEC_2ND_BOARD_SUPPORT
 	}
 	else
 	{
@@ -763,41 +916,95 @@ void mainloop(void)
 			ADAU1452_Register_All_Read();
 		}
 #endif //ADAU1452_DUMP
-		/*User Code start*/
-#ifdef GPIO_ENABLE
-		Power_Control(); //KMS241127_2 : Power Control is executed here.
-#endif
+
 #if defined(I2C_1_SLAVE_ENABLE) && defined(MCU_RESET_AFTER_WAKE_UP) //KMS250228_4 : Polling check for I2C Read
 		if(ACC_On_State() == TRUE)
-			Slave_Read_Buffer_Not_Empty();
+			B_A2B_COM_Complete = Slave_Read_Buffer_Not_Empty();
 #endif
-#if defined(TIMER21) && defined(ESTEC_2ND_BOARD_SUPPORT) //KMS250228_3 : Mute Off execution after 1 sec using timer.
-		if(B_Mute_TimerOn == TRUE)
-		{
-			B_Mute_TimerOn = FALSE;
 
-			Mute_Relay_Control(FALSE); //Mute Off
-		}
-#endif
-#ifdef DEEP_SLEEP_MODE_ENABLE
-		if(B_Deep_Sleep == TRUE)
+#ifdef ESTEC_2ND_BOARD_SUPPORT
+		/*User Code start*/
+		
+		if(B_Need_Init_Board) //KMS250305_1 : Under A2B Mode, we need to init all peripheral after A2B recever complete A2B communication with A2B Master
 		{
-			B_Deep_Sleep = FALSE;
-
-			if(ACC_On_State() == FALSE) //KMS241129_3 : Need to check whether ACC Off or ACC On again before MCU goes deep-sleep mode
+#ifdef HMC_A2B_MASTER_BOARD_SUPPORT
+			if(B_A2B_COM_Complete)// || (((SysTick_100ms_count - SysTick_100ms_count_check) >= 200) && SysTick_100ms_count_check != 0xffffffff)) //10sec Wait and Init_Board
+#endif			
 			{
-				HAL_GPIO_ClearPin(PA, _BIT(2)); //KMS241129_3 : Move to here from time20.c!!! //Made PF3 to Low
-#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_1 : The PF3/Pin37(12V_CNTRL) is followed by LDO_CNTRL state.
-				HAL_GPIO_ClearPin((PORT_Type *)PF, _BIT(3)); //Made PF3 to Low
+				if(B_A2B_COM_Complete)
+				{
+#ifdef _DEBUG_MSG
+					cputs("\n\rForced Execution Init_Board() : After A2B communication is completed");
 #endif
-				PWR_DeepSleepRun();
+				}
+				else
+				{
+#ifdef _DEBUG_MSG
+					cputs("\n\rForced Execution Init_Board() : using X-TAL instead of A2B Receiver's MCLK");
+#endif
+					HAL_GPIO_SetPin(PE, _BIT(1)); //KMS250305_1 : Made PE1 to High(XTAL-IN of DSP is connected with X-TAL(AUX Mode))
+				}
+				
+				B_Need_Init_Board = FALSE;
+				B_A2B_COM_Complete = FALSE;
+
+				//SysTick_100ms_count_check = 0xffffffff;
+			
+				Init_Board();
 			}
 		}
+		else
+		{
+#endif
+#ifdef GPIO_ENABLE
+			Power_Control(); //KMS241127_2 : Power Control is executed here.
+#endif
+#if defined(TIMER21) && defined(ESTEC_2ND_BOARD_SUPPORT) //KMS250228_3 : Mute Off execution after 1 sec using timer.
+			if(B_Mute_TimerOn == TRUE)
+			{
+				B_Mute_TimerOn = FALSE;
+
+				Mute_Relay_Control(MUTE_OFF_STATE); //Mute Off
+			}
+#endif
+#ifdef DEEP_SLEEP_MODE_ENABLE
+			if(B_Deep_Sleep == TRUE)
+			{
+				B_Deep_Sleep = FALSE;
+
+				if(ACC_On_State() == FALSE) //KMS241129_3 : Need to check whether ACC Off or ACC On again before MCU goes deep-sleep mode
+				{
+					HAL_GPIO_ClearPin(PA, _BIT(2)); //KMS241129_3 : Move to here from time20.c!!! //Made PF3 to Low
+#ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_1 : The PF3/Pin37(12V_CNTRL) is followed by LDO_CNTRL state.
+					HAL_GPIO_ClearPin((PORT_Type *)PF, _BIT(3)); //Made PF3 to Low
+#endif
+					PWR_DeepSleepRun();
+				}
+			}
 #endif
 #ifdef ESTEC_A2B_STACK_PORTING
 #ifdef ESTEC_2ND_BOARD_SUPPORT
-		if (B_A2B_Master_Support == TRUE) //KMS250227_2 : //PA6/Pin2(A2B_DIRECT) - High : A2B Master feature disable / Low : A2B Master feature enable
-		{
+			if (B_A2B_Master_Support == TRUE) //KMS250227_2 : //PA6/Pin2(A2B_DIRECT) - High : A2B Master feature disable / Low : A2B Master feature enable
+			{
+				/* Monitor a2b network for faults and initiate re-discovery if enabled */
+				nResult = a2b_fault_monitor(&gApp_Info);
+
+				/*-----------------------------------------------------------*/
+				/* Add your other continuous monitoring application code here */
+				/*-----------------------------------------------------------*/
+
+				/* condition to exit the program */
+				if (nResult != 0)
+				{
+#ifdef _DEBUG_MSG
+					cprintf("\n\r A2B_Falut_monitor = 0x%02x",nResult);
+#endif
+				}
+
+				/* tick keeps all process rolling.. so keep ticking */
+				a2b_stackTick(gApp_Info.ctx);
+			}
+#else //ESTEC_2ND_BOARD_SUPPORT
 			/* Monitor a2b network for faults and initiate re-discovery if enabled */
 			nResult = a2b_fault_monitor(&gApp_Info);
 
@@ -815,26 +1022,10 @@ void mainloop(void)
 
 			/* tick keeps all process rolling.. so keep ticking */
 			a2b_stackTick(gApp_Info.ctx);
+#endif //ESTEC_2ND_BOARD_SUPPORT
+#endif //ESTEC_A2B_STACK_PORTING
+#ifdef ESTEC_2ND_BOARD_SUPPORT
 		}
-#else //ESTEC_2ND_BOARD_SUPPORT
-		/* Monitor a2b network for faults and initiate re-discovery if enabled */
-		nResult = a2b_fault_monitor(&gApp_Info);
-
-		/*-----------------------------------------------------------*/
-		/* Add your other continuous monitoring application code here */
-		/*-----------------------------------------------------------*/
-
-		/* condition to exit the program */
-		if (nResult != 0)
-		{
-#ifdef _DEBUG_MSG
-			cprintf("\n\r A2B_Falut_monitor = 0x%02x",nResult);
-#endif
-		}
-
-		/* tick keeps all process rolling.. so keep ticking */
-		a2b_stackTick(gApp_Info.ctx);
-#endif
 #endif
 	}
 }

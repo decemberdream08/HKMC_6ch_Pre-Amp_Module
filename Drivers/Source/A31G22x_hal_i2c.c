@@ -346,8 +346,9 @@ void HAL_I2C_Interrupt_SlaveHandler(I2C_Type *I2Cx) {
 s_int_end:
 
     I2Cx->ST = 0xff; // flag clear and SCL go to HIGH
+
     // Disable interrupt
-    HAL_I2C_IntCmd(I2Cx, FALSE);
+    //HAL_I2C_IntCmd(I2Cx, FALSE); //KMS250306_2 : Disable this because we need to get continueous message from I2C Master
     I2C_SlaveComplete[tmp] = TRUE;
 }
 

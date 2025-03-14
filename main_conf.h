@@ -40,24 +40,11 @@ extern "C"
 #endif
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-//Feature
-#define DEEP_SLEEP_MODE_ENABLE		(1) //KMS241128_1 : Added DEEP SLEEP mode code.
-#ifdef DEEP_SLEEP_MODE_ENABLE
-#define MCU_RESET_AFTER_WAKE_UP		(1) //KMS241129_1 : Implemented MCU reset after wake-up from Deep-sleep.
-#define DEEP_SLEEP_LOWEST_POWER_CONSUMPTION	(1) //KMS241129_2 : Implemented lowest power consumption under MCU deep-sleep mode.
-#endif
-
-#define ESTEC_A2B_STACK_PORTING		(1) //KMS241129_4 : To merge A2B Stack, we use "ESTEC_A2B_STACK_PORTING" define.
-#ifdef ESTEC_A2B_STACK_PORTING
-#define A2B_STACK_CODE_FROM_ADI			(1) //KMS241211_1 : To make A2B Stack code as module code. So we can remove A2B Stack without disabling "A2B_STACK_CODE_FROM_ADI".
-#define A2B_SLAVE_DISCOVERY_WO_ID_VER		(1) //KMS250204_1 : Changed ESTec Board doesn't check Device ID and Version of Slave Node's A2B transceiver when ESTec Board works as A2B Master.
-#endif
-
-#define A2B_SLAVE_WORKING_SUPPORT_TMD8_32BIT			(1) //KMS250110_1 : To support TDM8 under A2B Slave mode like NE-N
-
-//Functions
+//Hardware
 #define ESTEC_BOARD					(1)
 #define ESTEC_2ND_BOARD_SUPPORT		(1) //KMS250219_1 : To support ESTec 2nd Board which has I2C Slave and some additional GPIOs.
+
+//MCU I/F & MCU Functions
 #define I2C_0_ENABLE				(1) //Use I2C 0 for the communication with DSP/A2B Transceiver - PF6:SCL0, PF7:SDA0. If you don't use I2C0, please make sure to disable this macro !!!
 #define I2C_1_ENABLE				(1) //Use I2C 1 for the communication with ADC/DAC - PF0:SCL1, PF1:SDA1.
 #ifdef ESTEC_2ND_BOARD_SUPPORT
@@ -76,12 +63,30 @@ extern "C"
 #define ADAU1761_ENABLE				(1) //KMS241125_2 : Added ADAU1761(ADC/DAC) code //I2C_1
 
 //Features
+#define DEEP_SLEEP_MODE_ENABLE		(1) //KMS241128_1 : Added DEEP SLEEP mode code.
+#ifdef DEEP_SLEEP_MODE_ENABLE
+#define MCU_RESET_AFTER_WAKE_UP		(1) //KMS241129_1 : Implemented MCU reset after wake-up from Deep-sleep.
+#define DEEP_SLEEP_LOWEST_POWER_CONSUMPTION	(1) //KMS241129_2 : Implemented lowest power consumption under MCU deep-sleep mode.
+#endif
+
+#define ESTEC_A2B_STACK_PORTING		(1) //KMS241129_4 : To merge A2B Stack, we use "ESTEC_A2B_STACK_PORTING" define.
+#ifdef ESTEC_A2B_STACK_PORTING
+#define A2B_STACK_CODE_FROM_ADI		(1) //KMS241211_1 : To make A2B Stack code as module code. So we can remove A2B Stack without disabling "A2B_STACK_CODE_FROM_ADI".
+#define A2B_SLAVE_DISCOVERY_WO_ID_VER		(1) //KMS250204_1 : Changed ESTec Board doesn't check Device ID and Version of Slave Node's A2B transceiver when ESTec Board works as A2B Master.
+#endif
+
+#define A2B_SLAVE_WORKING_SUPPORT_TMD8_32BIT			(1) //KMS250110_1 : To support TDM8 under A2B Slave mode like NE-N
+
+//#define USE_HEAP_MEMORY_FOR_LONG_BUFFER	(1) //KMS250109_2 : To avoid stack overflow when I2C function is executed DSP init, we use heap.
+
 #ifdef GPIO_ENABLE
 #define INTPUT_SOURCE_SELECTION_UPON_POWER_ON			(1) //KMS241213_3 : The input souce selection is only working one time when power is turned on.
 #endif
 
+#define HMC_A2B_MASTER_BOARD_SUPPORT					(1) //KMS250314_3 : To support HMC Master A2B Board which checks TI AMP.
+
 //Tests
-//#define MCU_EVK_FUNCTION_TEST			(1) //KMS241127_1 : Defined test codes for MCU EVK board and ADI A2B Master EVK(using I2C1 for DSP/DAC and A2B Transceiver) 
+//#define MCU_EVK_FUNCTION_TEST			(1) //KMS241127_1 : Defined test codes for MCU EVK board and ADI A2B Master EVK(using I2C1 for DSP/DAC and A2B Transceiver)
 #ifdef MCU_EVK_FUNCTION_TEST
 #define MCU_EVK_I2C_TEST				(1) //I2C0, I2C1
 #define MCU_EVK_GPIO_TEST				(1) //GPIO, External Interrupt

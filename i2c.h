@@ -64,9 +64,10 @@ void I2C1_IRQHandler_MasterInterrupt(void);
 void I2C2_SPI20_IRQHandler_MasterInterrupt(void);
 
 //KMS241211_2 : To share I2C function for I2C_0 & I2C_1, it's changed I2C related functions as the following.
+#ifdef MCU_EVK_I2C_TEST
 void I2C_Interrupt_Write_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uint8_t uSubAddr_8bit, uint8_t *uData, uint8_t uDataSize);
 void I2C_Interrupt_Read_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uint8_t uSubAddr_8bit, uint8_t *uData, uint8_t uDataSize);
-
+#endif
 void I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uint16_t uSubAddr_16bit, uint8_t *uData, uint16_t uDataSize);
 void I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uint16_t uSubAddr_16bit, uint8_t *uData, uint16_t uDataSize);
 
