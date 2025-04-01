@@ -126,3 +126,9 @@
   - To use A2B Bus as Master, we can define Master AD2428 I2C address with (0x68). Now it's 0x68. //KMS250314_1
   - Max buffer size is defined by ADAU1452.c/ADAU1761.c and the size is 1020. //KMS250314_2
   - To support HMC Master A2B Board which checks TI AMP and we already implemented TI AMP response using I2C Slave(I2C_1). Please refer to "HMC_A2B_MASTER_BOARD_SUPPORT" macro. //KMS250314_3
+  
+## 2025-03-15
+  - Changed SW to send STEREO to A2B Slave. //KMS250318_1
+  
+## 2025-03-20
+  - Changed Audio Path to Front R/Rear R under A2B. //KMS250320_1
