@@ -132,3 +132,7 @@
   
 ## 2025-03-20
   - Changed Audio Path to Front R/Rear R under A2B. //KMS250320_1
+
+## 2025-04-03
+  - Changed I2C buffer size because we added High Pass Filter to DSP. //KMS250403_1
+  - Changed register values because we added High Pass Filter to DSP. //KMS250403_2
