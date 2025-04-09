@@ -136,3 +136,7 @@
 ## 2025-04-03
   - Changed I2C buffer size because we added High Pass Filter to DSP. //KMS250403_1
   - Changed register values because we added High Pass Filter to DSP. //KMS250403_2
+  
+## 2025-04-09
+  - Changed I2C buffer size because we added volume level up under A2B mode. //KMS250409_1
+  - Added Volume Up setting under A2B Mode. //KMS250409_2
