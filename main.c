@@ -84,6 +84,9 @@ void MCU_EVK_Function_Test(void);
 #ifdef ESTEC_2ND_BOARD_SUPPORT
 Bool A2B_Direct_State(void); //KMS250227_2 : //PA6/Pin2(A2B_DIRECT) - High : A2B Master feature disable / Low : A2B Master feature enable
 void Mute_Relay_Control(MUTE_STATE B_Mute_On); //KMS250228_3 : Mute On/Off function.
+#ifdef ESTEC_A2B_STACK_PORTING
+void A2B_Slave_NE_N_SetMuteStandby(MUTE_STATE mute_state);
+#endif
 #endif
 INPUT_MODE Input_Source_State(void); //KMS241213_2 : Added new function to check current input source whether A2B or Aux
 void Input_Source_Control(INPUT_MODE B_A2B_Mode); //KMS241213_2 : To inform current mode(A2B or Aux) to DSP using PA3
@@ -118,7 +121,7 @@ static const char Menu[] =
 "\t - Core: ARM Cortex-M0+ \n\r"
 "\t - Communicate via: USART10 - 38400 bps \n\r"
 "\t - I2C Master Interrupt Test \n\r"
-"\t - 2025/04/03 - AM \n\r"
+"\t - 2025/04/23 - PM \n\r"
 "************************************************\n\r";
 #endif
 
@@ -377,6 +380,45 @@ void PWR_DeepSleepRun(void)
 #ifdef GPIO_ENABLE
 
 #ifdef ESTEC_2ND_BOARD_SUPPORT
+#ifdef ESTEC_A2B_STACK_PORTING
+/**********************************************************************
+ * @brief		A2B_Slave_NE_N_SetMuteStandby(MUTE_STATE Mute_On)
+ * @Description   Make Mute(IO6)/Standby(IO7) of A2B Slave0 Transceiver to High 
+ *				under power On for Unmute.
+ * @param[in]	mute_state = MUTE_ON_STATE
+ *              mute_state = MUTE_OFF_STATE
+ * @return 		
+ *				
+ **********************************************************************/
+void A2B_Slave_NE_N_SetMuteStandby(MUTE_STATE mute_state) //KMS250422_2 : Make Mute(IO6)/Standby(IO7) of A2B Slave0 Transceiver to High or Low
+{
+	uint8_t uData[2] = {0,};
+	
+	if(mute_state == MUTE_ON_STATE)
+	{
+		//0x68 : 0x01 = 0x00 - The 0x01 address of Master A2B Transceiver set 0x00 to communicate with Slave Node0.
+		//0x69 : 0x4A = 0x00 - The Slave Node0 make IO6/IO7 to Low for Mute.
+		uData[0] = 0x01;
+		uData[1] = 0x00;
+		I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_0_DSP, 0x68,(uint8_t *)uData, 2);
+		uData[0] = 0x4A;
+		uData[1] = 0x00;
+		I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_0_DSP, 0x69,(uint8_t *)uData, 2);
+	}
+	else
+	{		
+		//0x68 : 0x01 = 0x00 - The 0x01 address of Master A2B Transceiver set 0x00 to communicate with Slave Node0.
+		//0x69 : 0x4A = 0xC0 - The Slave Node0 make IO6/IO7 to High for Unmute.
+		uData[0] = 0x01;
+		uData[1] = 0x00;
+		I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_0_DSP, 0x68,(uint8_t *)uData, 2);
+		uData[0] = 0x4A;
+		uData[1] = 0xC0;
+		I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_0_DSP, 0x69,(uint8_t *)uData, 2);
+	}
+}
+#endif
+
 /**********************************************************************
  * @brief		A2B_DIRECT_State
  * @Description   whether A2B Master feature is supportted(Low) or not(High)
@@ -516,6 +558,9 @@ void Power_Control(void) //KMS241127_2 : ACC ON/OFF contorl functtion
 		HAL_GPIO_ClearPin(PA, _BIT(1)); //Made PA1 to Low
 #if defined(TIMER21_ENABLE) && defined(ESTEC_2ND_BOARD_SUPPORT)
 		Mute_Relay_Control(MUTE_ON_STATE); //KMS250228_3 : Mute On
+#ifdef ESTEC_A2B_STACK_PORTING
+		A2B_Slave_NE_N_SetMuteStandby(MUTE_ON_STATE); //KMS250422_2
+#endif
 #endif
 	}
 	else
@@ -965,6 +1010,9 @@ void mainloop(void)
 				B_Mute_TimerOn = FALSE;
 
 				Mute_Relay_Control(MUTE_OFF_STATE); //Mute Off
+#ifdef ESTEC_A2B_STACK_PORTING
+				A2B_Slave_NE_N_SetMuteStandby(MUTE_OFF_STATE); //KMS250422_2
+#endif
 			}
 #endif
 #ifdef DEEP_SLEEP_MODE_ENABLE

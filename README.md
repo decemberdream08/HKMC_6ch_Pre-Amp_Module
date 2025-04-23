@@ -140,3 +140,11 @@
 ## 2025-04-09
   - Changed I2C buffer size because we added volume level up under A2B mode. //KMS250409_1
   - Added Volume Up setting under A2B Mode. //KMS250409_2
+  
+## 2025-04-22
+  - Changed condition to check product id only excepting version and Added some code to avoid version check of A2B Transceiver. //KMS250422_1
+  - Added A2B Transceiver GPIO Control Code to use MUTE(GPIO6)/STANDBY(GPIO7) for A2B Slave(NE-N) When HKMC PreAmp module is used as A2B Master. //KMS250422_2
+  - Changed A2B Out Audio Path from Front R/Rear R to Front R/Front R on Slot 0/1. Please refer to ADAU1452 registers. //KMS250422_3
+  
+## 2025-04-23
+  - Volumed down A2B output for A2B Slave. //KMS250423_1
