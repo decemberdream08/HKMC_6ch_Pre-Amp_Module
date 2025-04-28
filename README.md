@@ -148,3 +148,13 @@
   
 ## 2025-04-23
   - Volumed down A2B output for A2B Slave. //KMS250423_1
+
+## 2025-04-25
+  - Fixed A2B Transceiver for A2B Master on ESTec Board can't send audio data(I2S data) well to NE-N Slave. The solution is just added MUTE and MUTE Off is executed after A2B Transcevier is stable. //KMS250425_1
+  - When ESTec board is Power On, we need to make DSP Mute Off because DSP has default Mute On. //KMS250425_2
+  - Need to check disoveryDone state because we need to send UNMUTE CMD to NE-N Slave after the state. upper side two solutions are realated with this line also. //KMS250425_3
+  - The device address of ADAU1452 is defined in ADAU1452.h. //KMS250425_4
+  - To recovery I2C Error. //KMS250425_5
+
+## 2025-04-28  
+  - When ESTec board is connected with NE-N(Slave), ACC on is NG under Power off/on repeat test. Because Power off is not executed. It's fixed it. //KMS250428_1

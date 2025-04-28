@@ -31,7 +31,7 @@
 /** Max buffer length */
 #define BUFFER_SIZE	(63) //KMS241125_2 Data Buffer Size (Excluded slave address byte size)
 //#define LONG_BUFFER_SIZE (3958) //KMS241125_2 : This buffer size includes I2C sub-address also !!!
-#define LONG_BUFFER_SIZE (3508) //KMS250409_1 : Max buffer size is defined by ADAU1452.c/ADAU1761.c and the size is 3504.
+#define LONG_BUFFER_SIZE (3552) //KMS250409_1 : Max buffer size is defined by ADAU1452.c/ADAU1761.c and the size is 3548. //KMS250425_1
 
 /** Max I2C Channel Number */
 #define I2C_IP_INDEX_MAX			(3)
@@ -333,6 +333,9 @@ void I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, u
 	uint8_t MasterWriteBuffer[LONG_BUFFER_SIZE]; //1024 Byte = 2 byte(I2C Sub Address) + 1022 byte(Data)
 	I2C_M_SETUP_Type MasterCfg;
 	int i = 0;
+#ifdef I2C_LOSS_RESET
+	uint32_t uCount = 0;
+#endif
 
 #ifdef _I2C_DEBUG_MSG
 #ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
@@ -440,7 +443,16 @@ void I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, u
 		HAL_I2C_MasterTransmitData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 #endif
 	
+#ifdef I2C_LOSS_RESET
+	while(!complete)
+	{
+		if(uCount == 100000) //100000 = 200ms
+			break;
+		uCount++;
+	}
+#else
     while(!complete);
+#endif
 
 #ifdef _I2C_DEBUG_MSG
  	cputs("\r\n MASTER Write Test OK\r\n");
@@ -461,6 +473,9 @@ void I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, ui
 	uint8_t uSubAddr[2];
 	I2C_M_SETUP_Type MasterCfg;
 	int i = 0;
+#ifdef I2C_LOSS_RESET
+	uint32_t uCount = 0;
+#endif
 
 #ifdef _I2C_DEBUG_MSG
 #ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
@@ -567,7 +582,16 @@ void I2C_Interrupt_Read_Data_16bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, ui
 		HAL_I2C_MasterReceiveData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 #endif
 	
+#ifdef I2C_LOSS_RESET
+	while(!complete)
+	{
+		if(uCount == 100000) //100000 = 200ms
+			break;
+		uCount++;
+	}
+#else
     while(!complete);
+#endif
 	
 #ifdef _I2C_DEBUG_MSG
 	cputs("\r\n MASTER Read Test OK \r\n");
@@ -595,6 +619,9 @@ void I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, u
 	I2C_M_SETUP_Type MasterCfg;
 #ifdef _I2C_DEBUG_MSG	
 	int i = 0;
+#endif
+#ifdef I2C_LOSS_RESET
+	uint32_t uCount = 0;
 #endif
 
 #ifdef _I2C_DEBUG_MSG
@@ -674,7 +701,17 @@ void I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, u
 		HAL_I2C_MasterTransmitData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 #endif
 	
+#ifdef I2C_LOSS_RESET
+	while(!complete)
+	{
+		if(uCount == 100000) //100000 = 200ms
+			break;
+		uCount++;
+	}
+#else
     while(!complete);
+#endif
+
 
 #ifdef _I2C_DEBUG_MSG
  	cputs("\r\n MASTER Write Test OK\r\n");
@@ -694,7 +731,9 @@ void I2C_Interrupt_Read_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, ui
 	uint8_t MasterReadBuffer[BUFFER_SIZE];
 	I2C_M_SETUP_Type MasterCfg;
 	int i = 0;
-
+#ifdef I2C_LOSS_RESET
+	uint32_t uCount = 0;
+#endif
 #ifdef _I2C_DEBUG_MSG
 #ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
 	if(num > I2C_1)
@@ -774,9 +813,18 @@ void I2C_Interrupt_Read_Data_A2B_8bit_Bus(I2C_Port_No num, uint8_t uDeviceId, ui
 	else
 		HAL_I2C_MasterReceiveData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 #endif
-	
+
+#ifdef I2C_LOSS_RESET
+	while(!complete)
+	{
+		if(uCount == 100000) //100000 = 200ms
+			break;
+		uCount++;
+	}
+#else
     while(!complete);
-	
+#endif
+
 #ifdef _I2C_DEBUG_MSG
 	cputs("\r\n MASTER Read Test OK \r\n");
 #endif
@@ -804,6 +852,9 @@ void I2C_Interrupt_Write_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, ui
 	uint8_t MasterWriteBuffer[BUFFER_SIZE];
 	I2C_M_SETUP_Type MasterCfg;
 	int i = 0;
+#ifdef I2C_LOSS_RESET
+	uint32_t uCount = 0;
+#endif
 
 #ifdef _I2C_DEBUG_MSG
 #ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
@@ -908,8 +959,16 @@ void I2C_Interrupt_Write_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, ui
 	else
 		HAL_I2C_MasterTransmitData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 #endif
-
+#ifdef I2C_LOSS_RESET
+	while(!complete)
+	{
+		if(uCount == 100000) //100000 = 200ms
+			break;
+		uCount++;
+	}
+#else
     while(!complete);
+#endif
 
 #ifdef _I2C_DEBUG_MSG
  	cputs("\r\n MASTER Write Test OK\r\n");
@@ -929,6 +988,9 @@ void I2C_Interrupt_Read_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uin
 	uint8_t MasterReadBuffer[BUFFER_SIZE];
 	I2C_M_SETUP_Type MasterCfg;
 	int i = 0;
+#ifdef I2C_LOSS_RESET
+	uint32_t uCount = 0;
+#endif
 
 #ifdef _I2C_DEBUG_MSG
 #ifdef ESTEC_2ND_BOARD_SUPPORT //KMS250227_4
@@ -1031,7 +1093,17 @@ void I2C_Interrupt_Read_Data_8bit_SubAdd(I2C_Port_No num, uint8_t uDeviceId, uin
 		HAL_I2C_MasterReceiveData(i2c1_Master->pI2Cx, &MasterCfg, I2C_TRANSFER_INTERRUPT);
 #endif
 
+#ifdef I2C_LOSS_RESET
+	while(!complete)
+	{
+		if(uCount == 100000) //100000 = 200ms
+			break;
+		uCount++;
+	}
+#else
     while(!complete);
+#endif
+
 	
 #ifdef _I2C_DEBUG_MSG
 	cputs("\r\n MASTER Read Test OK \r\n");

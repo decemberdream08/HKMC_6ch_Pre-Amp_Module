@@ -113,6 +113,9 @@ int main (void);
 Bool B_Need_ACC_On = FALSE; //KMS241127_2 : To Update ACC ON state using PA1(Pin45) & PA2(Pin46)
 Bool B_Need_ACC_Off = FALSE; //KMS241127_2 : To Update ACC OFF state using PA1(Pin45) & PA2(Pin46)
 
+#if defined(ESTEC_2ND_BOARD_SUPPORT) && defined(HMC_A2B_MASTER_BOARD_SUPPORT)
+Bool B_Check_ACC_Off_Execution = FALSE; //KMS250428_1 : When ESTec board is connected with NE-N(Slave), ACC on is NG under Power off/on repeat test. Because Power off is not executed. It's fixed it.
+#endif
 
 #ifdef _DEBUG_MSG
 static const char Menu[] =
@@ -121,7 +124,7 @@ static const char Menu[] =
 "\t - Core: ARM Cortex-M0+ \n\r"
 "\t - Communicate via: USART10 - 38400 bps \n\r"
 "\t - I2C Master Interrupt Test \n\r"
-"\t - 2025/04/23 - PM \n\r"
+"\t - 2025/04/28 - PM \n\r"
 "************************************************\n\r";
 #endif
 
@@ -206,8 +209,18 @@ void Init_Board(void)
 #ifdef _DEBUG_MSG
 		cputs("\n\rA2B_Master_Support !!!");
 #endif
-		B_A2B_Master_Support = TRUE;
 		nResult = a2b_setup(&gApp_Info);
+
+		if(gApp_Info.discoveryDone) //KMS250425_3 : Need to check disoveryDone state because we need to send UNMUTE CMD to NE-N Slave after the state.		
+			B_A2B_Master_Support = TRUE;
+		else
+			B_A2B_Master_Support = FALSE;
+
+#ifdef _DEBUG_MSG
+		cprintf("\n\rDiscovery success = %d, Discover Done = %d",gApp_Info.discoverySuccessful,gApp_Info.discoveryDone);
+		cprintf("\n\rB_A2B_Master_Support = %d");
+#endif
+
 	}
 	else
 	{
@@ -417,6 +430,35 @@ void A2B_Slave_NE_N_SetMuteStandby(MUTE_STATE mute_state) //KMS250422_2 : Make M
 		I2C_Interrupt_Write_Data_A2B_8bit_Bus(I2C_0_DSP, 0x69,(uint8_t *)uData, 2);
 	}
 }
+
+/**********************************************************************
+ * @brief		DSP_A2B_Audio_Output_Mute_Off(void)
+ * @Description   Make Mute(IO6)/Standby(IO7) of A2B Slave0 Transceiver to High 
+ *				under power On for Unmute.
+ * @param[in]	
+ * @return 		
+ *	
+ *	ADI_REG_TYPE MODE_0_0[4] = {0x01, 0x00, 0x00, 0x00};
+ *	ADI_REG_TYPE MODE_0_1[4] = {0x00, 0x00, 0x20, 0x8A};
+ *	SIGMA_WRITE_REGISTER_BLOCK( DEVICE_ADDR_IC_1, 0x0084, 4, MODE_0_0);	//MuteHWSlewAlgADAU145X1mute
+ *	SIGMA_WRITE_REGISTER_BLOCK( DEVICE_ADDR_IC_1, 0x0083, 4, MODE_0_1);
+ **********************************************************************/
+void DSP_A2B_Audio_Output_Mute_Off(void) //KMS250425_2
+{
+	//I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_0_DSP, deviceId, subAddr, data, dataSize)
+	uint8_t uDataBuf[4] = {0,};
+
+	uDataBuf[0] = 0x01;
+	uDataBuf[1] = 0x00;
+	uDataBuf[2] = 0x00;
+	uDataBuf[3] = 0x00;
+	I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_0_DSP, DEVICE_ADDR_ADAU1452, 0x0084, uDataBuf, 4);/* MuteHWSlewAlgADAU145X1slew_mode */
+	uDataBuf[0] = 0x00;
+	uDataBuf[1] = 0x00;
+	uDataBuf[2] = 0x20;
+	uDataBuf[3] = 0x8A;
+	I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_0_DSP, DEVICE_ADDR_ADAU1452, 0x0083, uDataBuf, 4);/* MuteHWSlewAlgADAU145X1slew_mode */
+}
 #endif
 
 /**********************************************************************
@@ -548,7 +590,9 @@ void Power_Control(void) //KMS241127_2 : ACC ON/OFF contorl functtion
 	else if(B_Need_ACC_Off) //Need to make PA1/PA2 to Low. But especially PA2 should be 1sec later.
 	{		
 		B_Need_ACC_Off = FALSE;
-
+#if defined(ESTEC_2ND_BOARD_SUPPORT) && defined(HMC_A2B_MASTER_BOARD_SUPPORT)
+		B_Check_ACC_Off_Execution = TRUE; //KMS250428_1
+#endif
 #ifdef GPIO_DEBUG_MSG
 		cputs("\n\rPower Off ~~~ !!!");
 #endif
@@ -559,7 +603,8 @@ void Power_Control(void) //KMS241127_2 : ACC ON/OFF contorl functtion
 #if defined(TIMER21_ENABLE) && defined(ESTEC_2ND_BOARD_SUPPORT)
 		Mute_Relay_Control(MUTE_ON_STATE); //KMS250228_3 : Mute On
 #ifdef ESTEC_A2B_STACK_PORTING
-		A2B_Slave_NE_N_SetMuteStandby(MUTE_ON_STATE); //KMS250422_2
+		if(B_A2B_Master_Support) //KMS250425_3
+			A2B_Slave_NE_N_SetMuteStandby(MUTE_ON_STATE); //KMS250422_2
 #endif
 #endif
 	}
@@ -600,14 +645,24 @@ void GPIOAB_IRQHandler_IT(void) //KMS24112_6 : External Interrupt Setting for PA
 		{
 			B_Need_ACC_On = TRUE; //ACC On
 #ifdef GPIO_DEBUG_MSG
-			cputs("\n\rGPIO High");
+			cputs("\n\rINT Check GPIO High");
+#endif
+#if defined(ESTEC_2ND_BOARD_SUPPORT) && defined(HMC_A2B_MASTER_BOARD_SUPPORT) //KMS250428_1
+			if(B_Check_ACC_Off_Execution)
+			{
+#ifdef GPIO_DEBUG_MSG
+				cputs("\n\rACC OFF can't execute due to short time. So it need to reset here ~ !!!");
+#endif
+				HAL_SCU_SetResetSrc(RST_SWRST, ENABLE);
+				SCU->SCR |= (0x9EB30000|SCU_SCR_SWRST_Msk);
+			}
 #endif
 		}
 		else
 		{
 			B_Need_ACC_Off = TRUE; //ACC Off
 #ifdef GPIO_DEBUG_MSG
-			cputs("\n\rGPIO Low");
+			cputs("\n\rINT Check GPIO Low 1");
 #endif
 		}
 	}
@@ -1010,8 +1065,13 @@ void mainloop(void)
 				B_Mute_TimerOn = FALSE;
 
 				Mute_Relay_Control(MUTE_OFF_STATE); //Mute Off
-#ifdef ESTEC_A2B_STACK_PORTING
-				A2B_Slave_NE_N_SetMuteStandby(MUTE_OFF_STATE); //KMS250422_2
+#ifdef ESTEC_A2B_STACK_PORTING				
+				if(B_A2B_Master_Support) //KMS250425_4
+				{
+					A2B_Slave_NE_N_SetMuteStandby(MUTE_OFF_STATE); //KMS250422_2
+				
+					DSP_A2B_Audio_Output_Mute_Off();//KMS250425_2 : DSP Mute Off because DSP has default Mute On.
+				}
 #endif
 			}
 #endif

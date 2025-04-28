@@ -50,6 +50,7 @@ extern "C"
 #ifdef ESTEC_2ND_BOARD_SUPPORT
 #define I2C_1_SLAVE_ENABLE			(1) //I2C_1 : Work for Slave to control vitual Amp communicatoin reqested from Front two A2B Transceivers.
 #endif
+#define I2C_LOSS_RESET				(1) //KMS250425_5 : To recovery I2C Error
 
 #define GPIO_ENABLE					(1) //KMS241125_5 : Added GPIO code.
 #define TIMER20_ENABLE				(1) //KMS241127_4 : Added TIMER20 code. This is timer for ACC OFF only.

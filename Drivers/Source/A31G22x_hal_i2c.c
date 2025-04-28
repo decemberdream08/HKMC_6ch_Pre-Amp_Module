@@ -363,12 +363,30 @@ s_int_end:
 int32_t HAL_I2C_MWait(I2C_Type *I2Cx) {
     uint32_t tmp;
     int32_t ret = 0;
+#ifdef I2C_LOSS_RESET
+    uint32_t waitcnt;
+#endif
 
     I2Cx->ST = 0xFF;
+
+#ifdef I2C_LOSS_RESET
+   waitcnt=0xffff;
+   while(1)
+   {
+		if((I2Cx->CR & 0x10) != 0x0)
+			break;
+		waitcnt--;
+		if(waitcnt==0x0) 
+			break;
+   }
+   if(waitcnt==0)
+   	return 0;
+#else
     while (1) {
         if ((I2Cx->CR & 0x10) != 0)
             break;
     }
+#endif
 
     tmp = I2Cx->ST;
     switch (tmp) {
@@ -412,12 +430,29 @@ Status HAL_I2C_MasterTransferData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferCfg,
     int32_t tmp;
     uint32_t exitflag;
     int32_t Ret;
-
+#ifdef I2C_LOSS_RESET
+    uint32_t waitcnt;
+#endif
     // Reset I2C setup value to default state
     TransferCfg->tx_count = 0;
     TransferCfg->rx_count = 0;
 
-    while (I2Cx->ST & 0x04) {}    // busy check //
+#ifdef I2C_LOSS_RESET
+    waitcnt= 0xff;
+    while(1)
+    {
+		if((I2Cx->ST&0x04) == 0x0)
+			break;
+		waitcnt--;
+		if(waitcnt==0)
+			break;
+    }
+    if(waitcnt ==0)
+		return ERROR;
+
+#else
+	while (I2Cx->ST & 0x04) {} // busy check //
+#endif
 			
     if (Opt == I2C_TRANSFER_POLLING) {
         /* First Start condition -------------------------------------------------------------- */
@@ -432,13 +467,19 @@ Status HAL_I2C_MasterTransferData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferCfg,
             I2Cx->CR |= (1 << 0); // START
             Ret = HAL_I2C_MWait(I2Cx);
 
+#ifdef I2C_LOSS_RESET
+			if(Ret==0)
+				return ERROR;
+#endif	
             if ((Ret != TRANS_MODE)) {
                 I2Cx->CR |= (1 << 1); // STOP
                 HAL_I2C_MWait(I2Cx);
                 I2Cx->ST = 0xFF;
                 I2Cx->CR = 0
                 | (1 << 7)    // I2C Block Enable
+#ifndef I2C_LOSS_RESET //I2C_LOSS_RESET1
                 | (1 << 5) // Interrupt Enable
+#endif
                 | (1 << 3); // ACKEN
                 return ERROR;
             }
@@ -449,14 +490,19 @@ Status HAL_I2C_MasterTransferData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferCfg,
                     I2Cx->DR = TransferCfg->tx_data[TransferCfg->tx_count];
                     TransferCfg->tx_count++;
                     Ret = HAL_I2C_MWait(I2Cx);
-
+#ifdef I2C_LOSS_RESET
+			if(Ret==0)
+				return ERROR;
+#endif	
                     if ((Ret != TRANS_DATA)) {
                         I2Cx->CR |= (1 << 1);    // STOP
                         HAL_I2C_MWait(I2Cx);
                         I2Cx->ST = 0xFF;
                         I2Cx->CR = 0
                         | (1 << 7)            // I2C Block Enable
-                        | (1 << 5)            // Interrupt Enable
+#ifndef I2C_LOSS_RESET //I2C_LOSS_RESET1
+                | (1 << 5) // Interrupt Enable
+#endif
                         | (1 << 3);           // ACKEN
                         return ERROR;
                     }
@@ -467,7 +513,9 @@ Status HAL_I2C_MasterTransferData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferCfg,
                         I2Cx->ST = 0xFF; //?
                         I2Cx->CR = 0
                         | (1 << 7)            // I2C Block Enable
-                        | (1 << 5)           // Interrupt Enable
+#ifndef I2C_LOSS_RESET //I2C_LOSS_RESET1
+                | (1 << 5) // Interrupt Enable
+#endif
                         | (1 << 3); // ACKEN
                         return SUCCESS;
                     } else {
@@ -481,14 +529,19 @@ Status HAL_I2C_MasterTransferData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferCfg,
             I2Cx->DR = ((TransferCfg->sl_addr7bit << 1) | 0x01);
             I2Cx->CR |= (1 << 0);     // START
             Ret = HAL_I2C_MWait(I2Cx);
-
+#ifdef I2C_LOSS_RESET
+			if(Ret==0)
+				return ERROR;
+#endif	
             if ((Ret != RECEIVE_MODE)) {
                 I2Cx->CR |= (1 << 1);   // STOP
                 HAL_I2C_MWait(I2Cx);
                 I2Cx->ST = 0xFF;
                 I2Cx->CR = 0
                 | (1 << 7)              // I2C Block Enable
-                | (1 << 5)              // Interrupt Enable
+#ifndef I2C_LOSS_RESET //I2C_LOSS_RESET1
+                | (1 << 5) // Interrupt Enable
+#endif
                 | (1 << 3);             // ACKEN
                 return ERROR;
             }
@@ -497,28 +550,38 @@ Status HAL_I2C_MasterTransferData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferCfg,
             while (exitflag) {
                 if ((TransferCfg->rx_length > 1) && (TransferCfg->rx_count < (TransferCfg->rx_length - 1))) {
                     Ret = HAL_I2C_MWait(I2Cx);
-
+#ifdef I2C_LOSS_RESET
+			if(Ret==0)
+				return ERROR;
+#endif	
                     if ((Ret != RECEIVE_DATA)) {
                         I2Cx->CR |= (1 << 1);    // STOP
                         HAL_I2C_MWait(I2Cx);
                         I2Cx->ST = 0xFF;
                         I2Cx->CR = 0
                         | (1 << 7)            // I2C Block Enable
-                        | (1 << 5)           // Interrupt Enable
+#ifndef I2C_LOSS_RESET //I2C_LOSS_RESET1
+                | (1 << 5) // Interrupt Enable
+#endif
                         | (1 << 3); // ACKEN
                         return ERROR;
                     }
                 } else {  // the next byte is the last byte, send NACK instead.
                     I2Cx->CR &= ((1 << 7) | (1 << 5));    // clear ACKEN
                     Ret = HAL_I2C_MWait(I2Cx);
-
+#ifdef I2C_LOSS_RESET
+			if(Ret==0)
+				return ERROR;
+#endif	
                     if ((Ret != RECEIVE_DATA)) {
                         I2Cx->CR |= (1<<1);    // STOP
                         HAL_I2C_MWait(I2Cx);
                         I2Cx->ST = 0xFF;
                         I2Cx->CR = 0
                         | (1 << 7)            // I2C Block Enable
-                        | (1 << 5)           // Interrupt Enable
+#ifndef I2C_LOSS_RESET //I2C_LOSS_RESET1
+                | (1 << 5) // Interrupt Enable
+#endif
                         | (1 << 3); // ACKEN
                         return ERROR;
                     }
@@ -537,7 +600,9 @@ Status HAL_I2C_MasterTransferData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferCfg,
             I2Cx->ST = 0xFF;
             I2Cx->CR = 0
             | (1 << 7)            // I2C Block Enable
-            | (1 << 5)           // Interrupt Enable
+#ifndef I2C_LOSS_RESET //I2C_LOSS_RESET1
+                | (1 << 5) // Interrupt Enable
+#endif
             | (1 << 3); // ACKEN
             return SUCCESS;
         }

@@ -21,11 +21,11 @@
 /* Private functions ---------------------------------------------------------*/
 
 #include "main_conf.h"
+
 #ifdef ADAU1452_ENABLE
 #include "i2c.h"
+#include "ADAU1452.h" //KMS250425_4 : device address of ADAU1452 is defined in ADAU1452.h
 #include "ADAU1452_Init_Reg.h"
-
-#define DEVICE_ADDR_ADAU1452		(0x38)
 
 #ifdef MCU_EVK_FUNCTION_TEST //KMS241211_2
 #define SIGMA_WRITE_REGISTER_BLOCK(deviceId, subAddr, dataSize, data) \
@@ -813,8 +813,9 @@ void ADAU1452_Download_Init_Value(void)
 	//KMS250403_2 : Added HighPass Filter on Aux mode - 0xC000 ~ 0x6094
 	//KMS250409_2 : Added Volume Up setting under A2B Mode - 0xC000 ~ 0x0000
 	//KMS250422_3 : Changed A2B Out Audio Path from Front R/Rear R to Front R/Front R on Slot 0/1. Please refer to ADAU1452 registers.
-	SIGMA_WRITE_REGISTER_BLOCK( DEVICE_ADDR_ADAU1452, 0xC000, 3504, (uint8_t *)MODE_1_71);			/* Program Data */
-	SIGMA_WRITE_REGISTER_BLOCK( DEVICE_ADDR_ADAU1452, 0x0000, 916, (uint8_t *)MODE_1_72);			/* DM0 Data */
+	//KMS250425_1
+	SIGMA_WRITE_REGISTER_BLOCK( DEVICE_ADDR_ADAU1452, 0xC000, 3548, (uint8_t *)MODE_1_71);			/* Program Data */
+	SIGMA_WRITE_REGISTER_BLOCK( DEVICE_ADDR_ADAU1452, 0x0000, 928, (uint8_t *)MODE_1_72);			/* DM0 Data */
 	SIGMA_WRITE_REGISTER_BLOCK( DEVICE_ADDR_ADAU1452, 0x60AC, 276, (uint8_t *)MODE_1_73);			/* DM1 Data */
 	SIGMA_WRITE_REGISTER_BLOCK( DEVICE_ADDR_ADAU1452, 0xF403, 2, (uint8_t *)MODE_1_74);			/* IC 1.KILL_CORE */
 	SIGMA_WRITE_REGISTER_BLOCK( DEVICE_ADDR_ADAU1452, 0xF404, 2, (uint8_t *)MODE_1_75);			/* IC 1.START_ADDRESS */

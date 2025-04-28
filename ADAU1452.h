@@ -17,10 +17,8 @@
  * Copyright (c) 2024 Analog Devices, Inc. All rights reserved.
  */
 
-#ifndef __ADAU1452_INIT_REG_H__
-#define __ADAU1452_INIT_REG_H__
-
-#include "main_conf.h"
+#ifndef __ADAU1452_H__
+#define __ADAU1452_H__
 
 /*******************************************************************************
 * Pre-processor Definition & Macro
@@ -29,6 +27,7 @@
 /*******************************************************************************
 * Private Typedef
 *******************************************************************************/
+#define DEVICE_ADDR_ADAU1452		(0x38) //KMS250425_2
 
 /*******************************************************************************
 * Private Variable
@@ -41,5 +40,5 @@ void ADAU1452_Init(void);
 #ifdef ADAU1452_DUMP //KMS250113_1 : Added Dump code for ADAU1452 registers.
 void ADAU1452_Register_All_Read(void); //KMS250107_1 : For Debugging
 #endif
-#endif //__ADAU1452_INIT_REG_H__
+#endif //__ADAU1452_H__
 
