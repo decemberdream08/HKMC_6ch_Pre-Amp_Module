@@ -440,8 +440,8 @@ void A2B_Slave_NE_N_SetMuteStandby(MUTE_STATE mute_state) //KMS250422_2 : Make M
  *	
  *	ADI_REG_TYPE MODE_0_0[4] = {0x01, 0x00, 0x00, 0x00};
  *	ADI_REG_TYPE MODE_0_1[4] = {0x00, 0x00, 0x20, 0x8A};
- *	SIGMA_WRITE_REGISTER_BLOCK( DEVICE_ADDR_IC_1, 0x0084, 4, MODE_0_0);	//MuteHWSlewAlgADAU145X1mute
- *	SIGMA_WRITE_REGISTER_BLOCK( DEVICE_ADDR_IC_1, 0x0083, 4, MODE_0_1);
+ *	SIGMA_WRITE_REGISTER_BLOCK( DEVICE_ADDR_IC_1, 0x00A4, 4, MODE_0_0);	//MuteHWSlewAlgADAU145X1mute
+ *	SIGMA_WRITE_REGISTER_BLOCK( DEVICE_ADDR_IC_1, 0x00A3, 4, MODE_0_1);
  **********************************************************************/
 void DSP_A2B_Audio_Output_Mute_Off(void) //KMS250425_2
 {
@@ -452,12 +452,12 @@ void DSP_A2B_Audio_Output_Mute_Off(void) //KMS250425_2
 	uDataBuf[1] = 0x00;
 	uDataBuf[2] = 0x00;
 	uDataBuf[3] = 0x00;
-	I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_0_DSP, DEVICE_ADDR_ADAU1452, 0x0084, uDataBuf, 4);/* MuteHWSlewAlgADAU145X1slew_mode */
+	I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_0_DSP, DEVICE_ADDR_ADAU1452, 0x00A4, uDataBuf, 4); //KMS250428_3 : When DPS block is changed on Sigmastudio, mute address should be changed. So, we need to update the address.
 	uDataBuf[0] = 0x00;
 	uDataBuf[1] = 0x00;
 	uDataBuf[2] = 0x20;
 	uDataBuf[3] = 0x8A;
-	I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_0_DSP, DEVICE_ADDR_ADAU1452, 0x0083, uDataBuf, 4);/* MuteHWSlewAlgADAU145X1slew_mode */
+	I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_0_DSP, DEVICE_ADDR_ADAU1452, 0x00A3, uDataBuf, 4); //KMS250428_3 : When DPS block is changed on Sigmastudio, mute address should be changed. So, we need to update the address.
 }
 #endif
 

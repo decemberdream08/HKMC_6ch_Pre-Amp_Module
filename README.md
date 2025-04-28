@@ -158,3 +158,5 @@
 
 ## 2025-04-28  
   - When ESTec board is connected with NE-N(Slave), ACC on is NG under Power off/on repeat test. Because Power off is not executed. It's fixed it. //KMS250428_1
+  - Changed A2B output audio path from analog L to analog R under Aux mode. Becasue the A2B output audio pateh is R under A2B mode and we need to make same output. //KMS250428_2
+  - When DPS block is changed on Sigmastudio, mute address should be changed. So, we need to update the address. //KMS250428_3
