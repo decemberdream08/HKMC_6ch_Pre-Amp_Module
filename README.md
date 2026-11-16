@@ -169,3 +169,6 @@
  
 ## 2025-12-04
   - According to HMC's request, A2B Output filter is changed. Please refer to ADAU1452_Init_Reg.h or DSP schematic(251204) for more detail.
+
+## 2026-11-16
+   - By HMC's request, All filter is deleted. Please refer to ADAU1452_Init_Reg.h or DSP schematic(251204) for more detail.

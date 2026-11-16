@@ -31,7 +31,12 @@
 /** Max buffer length */
 #define BUFFER_SIZE	(63) //KMS241125_2 Data Buffer Size (Excluded slave address byte size)
 //#define LONG_BUFFER_SIZE (3958) //KMS241125_2 : This buffer size includes I2C sub-address also !!!
-#define LONG_BUFFER_SIZE (3652) //KMS251204_1//KMS250409_1 : Max buffer size is defined by ADAU1452.c/ADAU1761.c and the size is 3548. //KMS250428_2
+#ifdef I2C_BUFFER_SIZE_REDUCED
+#define LONG_BUFFER_SIZE (I2C_BUFFER_SIZE)
+#else
+#define LONG_BUFFER_SIZE (3552) //KMS250409_1 : Max buffer size is defined by ADAU1452.c/ADAU1761.c and the size is 3548. //KMS250428_2
+#endif
+
 /** Max I2C Channel Number */
 #define I2C_IP_INDEX_MAX			(3)
 
