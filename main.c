@@ -452,12 +452,14 @@ void DSP_A2B_Audio_Output_Mute_Off(void) //KMS250425_2
 	uDataBuf[1] = 0x00;
 	uDataBuf[2] = 0x00;
 	uDataBuf[3] = 0x00;
-	I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_0_DSP, DEVICE_ADDR_ADAU1452, 0x00A4, uDataBuf, 4); //KMS250428_3 : When DPS block is changed on Sigmastudio, mute address should be changed. So, we need to update the address.
+	//KMS250508_1 : Chang address
+	I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_0_DSP, DEVICE_ADDR_ADAU1452, 0x0084, uDataBuf, 4); //KMS250428_3 : When DPS block is changed on Sigmastudio, mute address should be changed. So, we need to update the address.
 	uDataBuf[0] = 0x00;
 	uDataBuf[1] = 0x00;
 	uDataBuf[2] = 0x20;
 	uDataBuf[3] = 0x8A;
-	I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_0_DSP, DEVICE_ADDR_ADAU1452, 0x00A3, uDataBuf, 4); //KMS250428_3 : When DPS block is changed on Sigmastudio, mute address should be changed. So, we need to update the address.
+	//KMS250508_1 : Chang address
+	I2C_Interrupt_Write_Data_16bit_SubAdd(I2C_0_DSP, DEVICE_ADDR_ADAU1452, 0x0083, uDataBuf, 4); //KMS250428_3 : When DPS block is changed on Sigmastudio, mute address should be changed. So, we need to update the address.
 }
 #endif
 
